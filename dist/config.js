@@ -12,7 +12,7 @@ export function getConfigFields() {
             id: 'host',
             label: 'Panel IP Address',
             width: 8,
-            default: '10.46.70.52',
+            default: '',
             regex: '/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/',
         },
         {

@@ -1,5 +1,5 @@
-import { type SomeCompanionConfigField } from '@companion-module/base';
-export interface ModuleConfig {
+import { SomeCompanionConfigField } from '@companion-module/base';
+export interface DeviceConfig {
     host: string;
     port: number;
 }

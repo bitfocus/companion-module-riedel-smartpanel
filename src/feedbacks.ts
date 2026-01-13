@@ -1,5 +1,5 @@
 import { CompanionFeedbackDefinitions } from '@companion-module/base'
-import type { RiedelRSP1232HLInstance } from './main'
+import type { RiedelRSP1232HLInstance } from './main.js'
 
 export function getFeedbacks(instance: RiedelRSP1232HLInstance): CompanionFeedbackDefinitions {
 	return {

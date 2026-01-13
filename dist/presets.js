@@ -1,8 +1,6 @@
 import { combineRgb } from '@companion-module/base';
-
 export function getPresets() {
     const presets = {};
-
     // Color definitions
     const WHITE = combineRgb(255, 255, 255);
     const BLACK = combineRgb(0, 0, 0);
@@ -14,9 +12,7 @@ export function getPresets() {
     const DARK_RED = combineRgb(128, 0, 0);
     const DARK_GREEN = combineRgb(0, 128, 0);
     const DARK_BLUE = combineRgb(0, 0, 128);
-
     // ==================== STATUS DISPLAY PRESETS ====================
-
     presets['status_connection'] = {
         type: 'button',
         category: 'Status Display',
@@ -38,7 +34,6 @@ export function getPresets() {
             },
         ],
     };
-
     presets['status_health'] = {
         type: 'button',
         category: 'Status Display',
@@ -63,7 +58,6 @@ export function getPresets() {
             },
         ],
     };
-
     presets['status_alarms'] = {
         type: 'button',
         category: 'Status Display',
@@ -87,7 +81,6 @@ export function getPresets() {
             },
         ],
     };
-
     presets['status_ptp'] = {
         type: 'button',
         category: 'Status Display',
@@ -112,7 +105,6 @@ export function getPresets() {
             },
         ],
     };
-
     presets['status_ptp_domain'] = {
         type: 'button',
         category: 'Status Display',
@@ -126,7 +118,6 @@ export function getPresets() {
         steps: [{ down: [{ actionId: 'fetchPtpSettings', options: {} }], up: [] }],
         feedbacks: [],
     };
-
     presets['status_ptp_master'] = {
         type: 'button',
         category: 'Status Display',
@@ -140,9 +131,7 @@ export function getPresets() {
         steps: [{ down: [{ actionId: 'fetchPtpStatus', options: {} }], up: [] }],
         feedbacks: [],
     };
-
     // ==================== NETWORK STATUS PRESETS ====================
-
     presets['status_media1_ip'] = {
         type: 'button',
         category: 'Network Status',
@@ -166,7 +155,6 @@ export function getPresets() {
             },
         ],
     };
-
     presets['status_config1_ip'] = {
         type: 'button',
         category: 'Network Status',
@@ -190,7 +178,6 @@ export function getPresets() {
             },
         ],
     };
-
     presets['status_media2_ip'] = {
         type: 'button',
         category: 'Network Status',
@@ -214,9 +201,7 @@ export function getPresets() {
             },
         ],
     };
-
     // ==================== DEVICE INFO PRESETS ====================
-
     presets['info_device_name'] = {
         type: 'button',
         category: 'Device Info',
@@ -230,7 +215,6 @@ export function getPresets() {
         steps: [{ down: [{ actionId: 'fetchDeviceInfo', options: {} }], up: [] }],
         feedbacks: [],
     };
-
     presets['info_firmware'] = {
         type: 'button',
         category: 'Device Info',
@@ -244,7 +228,6 @@ export function getPresets() {
         steps: [{ down: [{ actionId: 'fetchDeviceInfo', options: {} }], up: [] }],
         feedbacks: [],
     };
-
     presets['info_mac'] = {
         type: 'button',
         category: 'Device Info',
@@ -258,9 +241,7 @@ export function getPresets() {
         steps: [{ down: [], up: [] }],
         feedbacks: [],
     };
-
     // ==================== REFRESH ACTIONS PRESETS ====================
-
     presets['action_refresh_all'] = {
         type: 'button',
         category: 'Actions',
@@ -274,7 +255,6 @@ export function getPresets() {
         steps: [{ down: [{ actionId: 'refreshAllStatus', options: {} }], up: [] }],
         feedbacks: [],
     };
-
     presets['action_refresh_network'] = {
         type: 'button',
         category: 'Actions',
@@ -288,7 +268,6 @@ export function getPresets() {
         steps: [{ down: [{ actionId: 'fetchAllNetworkStatus', options: {} }], up: [] }],
         feedbacks: [],
     };
-
     presets['action_refresh_health'] = {
         type: 'button',
         category: 'Actions',
@@ -302,7 +281,6 @@ export function getPresets() {
         steps: [{ down: [{ actionId: 'fetchHealthStatus', options: {} }], up: [] }],
         feedbacks: [],
     };
-
     presets['action_refresh_alarms'] = {
         type: 'button',
         category: 'Actions',
@@ -316,7 +294,6 @@ export function getPresets() {
         steps: [{ down: [{ actionId: 'fetchAlarmList', options: {} }], up: [] }],
         feedbacks: [],
     };
-
     presets['action_fetch_alarm_history'] = {
         type: 'button',
         category: 'Actions',
@@ -330,9 +307,7 @@ export function getPresets() {
         steps: [{ down: [{ actionId: 'fetchAlarmHistory', options: {} }], up: [] }],
         feedbacks: [],
     };
-
     // ==================== CONTROL PANEL PRESETS ====================
-
     presets['control_panel_status'] = {
         type: 'button',
         category: 'Control Panel',
@@ -363,7 +338,6 @@ export function getPresets() {
             },
         ],
     };
-
     presets['control_panel_enable'] = {
         type: 'button',
         category: 'Control Panel',
@@ -385,7 +359,6 @@ export function getPresets() {
             },
         ],
     };
-
     presets['control_panel_disable'] = {
         type: 'button',
         category: 'Control Panel',
@@ -407,9 +380,7 @@ export function getPresets() {
             },
         ],
     };
-
     // ==================== NMOS PRESETS ====================
-
     presets['nmos_status'] = {
         type: 'button',
         category: 'NMOS',
@@ -440,7 +411,6 @@ export function getPresets() {
             },
         ],
     };
-
     presets['nmos_enable'] = {
         type: 'button',
         category: 'NMOS',
@@ -462,7 +432,6 @@ export function getPresets() {
             },
         ],
     };
-
     presets['nmos_disable'] = {
         type: 'button',
         category: 'NMOS',
@@ -484,7 +453,6 @@ export function getPresets() {
             },
         ],
     };
-
     presets['nmos_refresh'] = {
         type: 'button',
         category: 'NMOS',
@@ -498,9 +466,7 @@ export function getPresets() {
         steps: [{ down: [{ actionId: 'fetchNmosStatus', options: {} }], up: [] }],
         feedbacks: [],
     };
-
     // ==================== PTP CONTROL PRESETS ====================
-
     presets['ptp_refresh'] = {
         type: 'button',
         category: 'PTP',
@@ -522,7 +488,6 @@ export function getPresets() {
         ],
         feedbacks: [],
     };
-
     // PTP Domain presets (0-7 are common domains)
     for (let domain = 0; domain <= 7; domain++) {
         presets[`ptp_set_domain_${domain}`] = {
@@ -539,9 +504,7 @@ export function getPresets() {
             feedbacks: [],
         };
     }
-
     // ==================== DEVICE CONTROL PRESETS ====================
-
     presets['device_reboot'] = {
         type: 'button',
         category: 'Device Control',
@@ -554,11 +517,8 @@ export function getPresets() {
         },
         steps: [{ down: [], up: [] }],
         feedbacks: [],
-        // Note: Reboot requires confirmation checkbox in action options
     };
-
     // ==================== ALERT INDICATORS ====================
-
     presets['alert_health_error'] = {
         type: 'button',
         category: 'Alert Indicators',
@@ -589,7 +549,6 @@ export function getPresets() {
             },
         ],
     };
-
     presets['alert_alarm_active'] = {
         type: 'button',
         category: 'Alert Indicators',
@@ -612,7 +571,6 @@ export function getPresets() {
             },
         ],
     };
-
     presets['alert_ptp_unlocked'] = {
         type: 'button',
         category: 'Alert Indicators',
@@ -635,7 +593,6 @@ export function getPresets() {
             },
         ],
     };
-
     presets['alert_disconnected'] = {
         type: 'button',
         category: 'Alert Indicators',
@@ -658,7 +615,6 @@ export function getPresets() {
             },
         ],
     };
-
     return presets;
 }
 //# sourceMappingURL=presets.js.map

@@ -1,5 +1,5 @@
 import { CompanionActionDefinitions } from '@companion-module/base'
-import type { RiedelRSP1232HLInstance } from './main'
+import type { RiedelRSP1232HLInstance } from './main.js'
 
 export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDefinitions {
 	return {

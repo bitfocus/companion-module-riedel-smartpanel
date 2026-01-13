@@ -70,7 +70,6 @@ export function getVariableDefinitions() {
         },
     ];
 }
-
 export function getDefaultVariableValues() {
     return {
         connection_status: 'Disconnected',

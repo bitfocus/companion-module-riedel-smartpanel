@@ -1,9 +1,9 @@
 import { InstanceBase, runEntrypoint, InstanceStatus, SomeCompanionConfigField } from '@companion-module/base'
-import { getConfigFields, DeviceConfig } from './config'
-import { getActions } from './actions'
-import { getFeedbacks } from './feedbacks'
-import { getPresets } from './presets'
-import { getVariableDefinitions, getDefaultVariableValues } from './variables'
+import { getConfigFields, DeviceConfig } from './config.js'
+import { getActions } from './actions.js'
+import { getFeedbacks } from './feedbacks.js'
+import { getPresets } from './presets.js'
+import { getVariableDefinitions, getDefaultVariableValues } from './variables.js'
 import WebSocket from 'ws'
 
 interface NetworkSettings {

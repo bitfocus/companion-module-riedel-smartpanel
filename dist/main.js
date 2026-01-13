@@ -5,8 +5,7 @@ import { getFeedbacks } from './feedbacks.js';
 import { getPresets } from './presets.js';
 import { getVariableDefinitions, getDefaultVariableValues } from './variables.js';
 import WebSocket from 'ws';
-
-export class RiedelInstance extends InstanceBase {
+export class RiedelRSP1232HLInstance extends InstanceBase {
     ws = null;
     config = { host: '', port: 80 };
     reconnectTimer = null;
@@ -23,11 +22,9 @@ export class RiedelInstance extends InstanceBase {
     controlPanelEnabled = false;
     nmosEnabled = false;
     nmosStatus = 'Unknown';
-
     constructor(internal) {
         super(internal);
     }
-
     async init(config) {
         this.config = config;
         this.setActionDefinitions(getActions(this));
@@ -37,7 +34,6 @@ export class RiedelInstance extends InstanceBase {
         this.setVariableValues(getDefaultVariableValues());
         this.initWebSocket();
     }
-
     async destroy() {
         if (this.reconnectTimer) {
             clearTimeout(this.reconnectTimer);
@@ -48,7 +44,6 @@ export class RiedelInstance extends InstanceBase {
             this.ws = null;
         }
     }
-
     async configUpdated(config) {
         this.config = config;
         if (this.ws) {
@@ -56,7 +51,9 @@ export class RiedelInstance extends InstanceBase {
         }
         this.initWebSocket();
     }
-
+    getConfigFields() {
+        return getConfigFields();
+    }
     initWebSocket() {
         if (!this.config.host) {
             this.updateStatus(InstanceStatus.BadConfig, 'No host configured');
@@ -71,13 +68,13 @@ export class RiedelInstance extends InstanceBase {
                 this.updateStatus(InstanceStatus.Ok);
                 this.setVariableValues({ connection_status: 'Connected' });
                 this.checkFeedbacks('connectionStatus');
-                // Fetch initial network status and settings for all interfaces
+                // Fetch initial network status and settings
                 this.fetchNetworkStatus('Media1');
                 this.fetchNetworkStatus('Config1');
                 this.fetchNetworkStatus('Media2');
                 this.fetchNetworkSettings();
                 this.fetchDeviceInfo();
-                // Fetch initial health, alarm, and PTP status
+                // Fetch health, alarm, and PTP status
                 this.fetchHealthStatus();
                 this.fetchAlarmList();
                 this.fetchPtpStatus();
@@ -98,7 +95,6 @@ export class RiedelInstance extends InstanceBase {
                 this.updateStatus(InstanceStatus.Disconnected);
                 this.setVariableValues({ connection_status: 'Disconnected' });
                 this.checkFeedbacks('connectionStatus');
-                // Attempt to reconnect after 5 seconds
                 this.reconnectTimer = setTimeout(() => {
                     this.initWebSocket();
                 }, 5000);
@@ -109,17 +105,16 @@ export class RiedelInstance extends InstanceBase {
             this.updateStatus(InstanceStatus.ConnectionFailure, String(error));
         }
     }
-
     handleMessage(message) {
         try {
             const data = JSON.parse(message);
             const topic = data.topic;
             this.log('debug', `Received: ${topic}`);
-
             if (topic === '/NetworkStatus/FetchNetworkStatusResponse') {
-                const interfaceId = data.body.interfaceId;
-                const ipAddress = data.body.ipv4Status?.ipAddress;
-                if (ipAddress) {
+                const body = data.body;
+                const interfaceId = body.interfaceId;
+                const ipAddress = body.ipv4Status?.ipAddress;
+                if (interfaceId && ipAddress) {
                     this.interfaceIps.set(interfaceId, ipAddress);
                     const variableUpdates = {};
                     if (interfaceId === 'Media1')
@@ -131,47 +126,51 @@ export class RiedelInstance extends InstanceBase {
                     this.setVariableValues(variableUpdates);
                     this.checkFeedbacks('interfaceIp');
                 }
-                if (data.body.macAddress) {
-                    this.setVariableValues({ mac_address: data.body.macAddress });
+                if (body.macAddress) {
+                    this.setVariableValues({ mac_address: body.macAddress });
                 }
             }
             else if (topic === '/DeviceInfo/FetchDeviceInfoResponse') {
+                const body = data.body;
                 const updates = {};
-                if (data.body.deviceName)
-                    updates.device_name = data.body.deviceName;
-                if (data.body.firmwareVersion)
-                    updates.firmware_version = data.body.firmwareVersion;
+                if (body.deviceName)
+                    updates.device_name = body.deviceName;
+                if (body.firmwareVersion)
+                    updates.firmware_version = body.firmwareVersion;
                 this.setVariableValues(updates);
             }
             else if (topic === '/NetworkSettings/FetchNetworkSettingsResponse') {
-                this.networkSettings = data.body.networkSettings;
+                const body = data.body;
+                this.networkSettings = body.networkSettings || null;
                 this.log('info', `Network settings received: ${this.networkSettings ? 'OK' : 'null'}`);
             }
             else if (topic === '/NetworkSettings/UpdateNetworkSettingsResponse') {
                 this.log('info', 'Network settings updated successfully');
-                // Refresh network status after update
                 this.fetchNetworkStatus('Media1');
                 this.fetchNetworkStatus('Config1');
                 this.fetchNetworkStatus('Media2');
             }
             else if (topic === '/StatusInfo/FetchHealthStatusResponse') {
-                if (data.body.healthStatus) {
-                    this.healthStatus = data.body.healthStatus;
+                const body = data.body;
+                if (body.healthStatus) {
+                    this.healthStatus = body.healthStatus;
                     this.setVariableValues({ health_status: this.healthStatus });
                     this.checkFeedbacks('healthStatus', 'healthStatusDisplay');
                     this.log('info', `Health status: ${this.healthStatus}`);
                 }
             }
             else if (topic === '/StatusInfo/HealthStatusChanged') {
-                if (data.body.healthStatus) {
-                    this.healthStatus = data.body.healthStatus;
+                const body = data.body;
+                if (body.healthStatus) {
+                    this.healthStatus = body.healthStatus;
                     this.setVariableValues({ health_status: this.healthStatus });
                     this.checkFeedbacks('healthStatus', 'healthStatusDisplay');
                 }
             }
             else if (topic === '/StatusInfo/FetchAlarmListResponse') {
-                if (data.body.alarmList) {
-                    this.alarmList = data.body.alarmList;
+                const body = data.body;
+                if (body.alarmList) {
+                    this.alarmList = body.alarmList;
                     this.setVariableValues({ alarm_count: String(this.alarmList.length) });
                     this.checkFeedbacks('alarmCount', 'alarmCountDisplay');
                     this.log('info', `Alarm count: ${this.alarmList.length}`);
@@ -181,20 +180,22 @@ export class RiedelInstance extends InstanceBase {
                 this.fetchAlarmList();
             }
             else if (topic === '/StatusInfo/FetchAlarmHistoryResponse') {
-                if (data.body.alarmHistory) {
-                    this.alarmHistory = data.body.alarmHistory;
+                const body = data.body;
+                if (body.alarmHistory) {
+                    this.alarmHistory = body.alarmHistory;
                     this.log('info', `Alarm history received: ${this.alarmHistory.length} entries`);
                 }
             }
             else if (topic === '/Ptp/FetchPtpStatusResponse') {
-                if (data.body.ptpStatus) {
-                    this.ptpStatus = data.body.ptpStatus;
+                const body = data.body;
+                if (body.ptpStatus) {
+                    this.ptpStatus = body.ptpStatus;
                     this.setVariableValues({ ptp_status: this.ptpStatus });
                     this.checkFeedbacks('ptpStatus', 'ptpStatusDisplay');
                     this.log('info', `PTP status: ${this.ptpStatus}`);
                 }
-                if (data.body.timeTransmitter) {
-                    this.ptpMaster = data.body.timeTransmitter;
+                if (body.timeTransmitter) {
+                    this.ptpMaster = body.timeTransmitter;
                     this.setVariableValues({ ptp_master: this.ptpMaster });
                 }
             }
@@ -202,16 +203,17 @@ export class RiedelInstance extends InstanceBase {
                 this.fetchPtpStatus();
             }
             else if (topic === '/Ptp/FetchPtpSettingsResponse') {
-                if (data.body.domain !== undefined) {
-                    this.ptpDomain = data.body.domain;
+                const body = data.body;
+                if (body.domain !== undefined) {
+                    this.ptpDomain = body.domain;
                     this.setVariableValues({ ptp_domain: String(this.ptpDomain) });
                 }
-                if (data.body.hybridMode !== undefined) {
-                    this.ptpHybridMode = data.body.hybridMode;
+                if (body.hybridMode !== undefined) {
+                    this.ptpHybridMode = body.hybridMode;
                     this.setVariableValues({ ptp_hybrid_mode: this.ptpHybridMode ? 'Enabled' : 'Disabled' });
                 }
-                if (data.body.timeReceiverOnly !== undefined) {
-                    this.ptpReceiverOnly = data.body.timeReceiverOnly;
+                if (body.timeReceiverOnly !== undefined) {
+                    this.ptpReceiverOnly = body.timeReceiverOnly;
                     this.setVariableValues({ ptp_receiver_only: this.ptpReceiverOnly ? 'Yes' : 'No' });
                 }
             }
@@ -220,8 +222,9 @@ export class RiedelInstance extends InstanceBase {
                 this.fetchPtpSettings();
             }
             else if (topic === '/ControlPanelApp/FetchConfigResponse') {
-                if (data.body.enabled !== undefined) {
-                    this.controlPanelEnabled = data.body.enabled;
+                const body = data.body;
+                if (body.enabled !== undefined) {
+                    this.controlPanelEnabled = body.enabled;
                     this.setVariableValues({ control_panel_enabled: this.controlPanelEnabled ? 'Yes' : 'No' });
                     this.checkFeedbacks('controlPanelEnabled');
                     this.log('info', `Control panel enabled: ${this.controlPanelEnabled}`);
@@ -231,13 +234,14 @@ export class RiedelInstance extends InstanceBase {
                 this.fetchControlPanelConfig();
             }
             else if (topic === '/Nmos/FetchStatusResponse') {
-                if (data.body.enabled !== undefined) {
-                    this.nmosEnabled = data.body.enabled;
+                const body = data.body;
+                if (body.enabled !== undefined) {
+                    this.nmosEnabled = body.enabled;
                     this.setVariableValues({ nmos_enabled: this.nmosEnabled ? 'Yes' : 'No' });
                     this.checkFeedbacks('nmosEnabled');
                 }
-                if (data.body.status) {
-                    this.nmosStatus = data.body.status;
+                if (body.status) {
+                    this.nmosStatus = body.status;
                     this.setVariableValues({ nmos_status: this.nmosStatus });
                 }
                 this.log('info', `NMOS enabled: ${this.nmosEnabled}, status: ${this.nmosStatus}`);
@@ -250,7 +254,6 @@ export class RiedelInstance extends InstanceBase {
             this.log('error', `Failed to parse message: ${error}`);
         }
     }
-
     sendMessage(topic, body = {}) {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
             this.log('warn', 'WebSocket not connected');
@@ -260,7 +263,6 @@ export class RiedelInstance extends InstanceBase {
         this.ws.send(message);
         this.log('debug', `Sent: ${topic}`);
     }
-
     // Network methods
     async setIpAddress(interfaceId, ipAddress, subnetMask, gateway, prefixLength, dhcp) {
         if (!this.networkSettings) {
@@ -283,137 +285,103 @@ export class RiedelInstance extends InstanceBase {
         targetInterface.ipv4Settings.networkMaskConverted = subnetMask;
         targetInterface.ipv4Settings.defaultGateway = gateway;
         targetInterface.ipv4Settings.prefixLength = prefixLength;
-        this.sendMessage('/NetworkSettings/UpdateNetworkSettings', {
-            networkSettings: updatedSettings,
-        });
+        this.sendMessage('/NetworkSettings/UpdateNetworkSettings', { networkSettings: updatedSettings });
     }
-
-    async fetchNetworkStatus(interfaceId) {
+    fetchNetworkStatus(interfaceId) {
         this.sendMessage('/NetworkStatus/FetchNetworkStatus', { interfaceId });
     }
-
-    async fetchNetworkSettings() {
+    fetchNetworkSettings() {
         this.sendMessage('/NetworkSettings/FetchNetworkSettings', {});
     }
-
     // Device methods
-    async rebootDevice() {
+    rebootDevice() {
         this.sendMessage('/Reboot/RebootDevice', {});
     }
-
-    async fetchDeviceInfo() {
+    fetchDeviceInfo() {
         this.sendMessage('/DeviceInfo/FetchDeviceInfo', {});
     }
-
     // Health and Alarm methods
-    async fetchHealthStatus() {
+    fetchHealthStatus() {
         this.sendMessage('/StatusInfo/FetchHealthStatus', {});
     }
-
-    async fetchAlarmList() {
+    fetchAlarmList() {
         this.sendMessage('/StatusInfo/FetchAlarmList', {});
     }
-
-    async fetchAlarmHistory() {
+    fetchAlarmHistory() {
         this.sendMessage('/StatusInfo/FetchAlarmHistory', {});
     }
-
     // PTP methods
-    async fetchPtpStatus() {
+    fetchPtpStatus() {
         this.sendMessage('/Ptp/FetchPtpStatus', {});
     }
-
-    async fetchPtpSettings() {
+    fetchPtpSettings() {
         this.sendMessage('/Ptp/FetchPtpSettings', {});
     }
-
-    async updatePtpSettings(domain, hybridMode, timeReceiverOnly) {
-        this.sendMessage('/Ptp/UpdatePtpSettings', {
-            domain,
-            hybridMode,
-            timeReceiverOnly,
-        });
+    updatePtpSettings(domain, hybridMode, timeReceiverOnly) {
+        this.sendMessage('/Ptp/UpdatePtpSettings', { domain, hybridMode, timeReceiverOnly });
     }
-
     // Control Panel methods
-    async fetchControlPanelConfig() {
+    fetchControlPanelConfig() {
         this.sendMessage('/ControlPanelApp/FetchConfig', {});
     }
-
-    async enableControlPanel() {
+    enableControlPanel() {
         this.sendMessage('/ControlPanelApp/Enable', {});
         setTimeout(() => this.fetchControlPanelConfig(), 500);
     }
-
-    async disableControlPanel() {
+    disableControlPanel() {
         this.sendMessage('/ControlPanelApp/Disable', {});
         setTimeout(() => this.fetchControlPanelConfig(), 500);
     }
-
-    async toggleControlPanel() {
+    toggleControlPanel() {
         if (this.controlPanelEnabled) {
-            await this.disableControlPanel();
-        } else {
-            await this.enableControlPanel();
+            this.disableControlPanel();
+        }
+        else {
+            this.enableControlPanel();
         }
     }
-
     // NMOS methods
-    async fetchNmosStatus() {
+    fetchNmosStatus() {
         this.sendMessage('/Nmos/FetchStatus', {});
     }
-
-    async enableNmos() {
+    enableNmos() {
         this.sendMessage('/Nmos/Enable', {});
         setTimeout(() => this.fetchNmosStatus(), 500);
     }
-
-    async disableNmos() {
+    disableNmos() {
         this.sendMessage('/Nmos/Disable', {});
         setTimeout(() => this.fetchNmosStatus(), 500);
     }
-
-    async toggleNmos() {
+    toggleNmos() {
         if (this.nmosEnabled) {
-            await this.disableNmos();
-        } else {
-            await this.enableNmos();
+            this.disableNmos();
+        }
+        else {
+            this.enableNmos();
         }
     }
-
     // Getter methods for feedbacks
     isConnected() {
         return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
     }
-
     getInterfaceIp(interfaceId) {
         return this.interfaceIps.get(interfaceId);
     }
-
     getHealthStatus() {
         return this.healthStatus;
     }
-
     getAlarmCount() {
         return this.alarmList.length;
     }
-
     getPtpStatus() {
         return this.ptpStatus;
     }
-
     getControlPanelEnabled() {
         return this.controlPanelEnabled;
     }
-
     getNmosEnabled() {
         return this.nmosEnabled;
     }
-
-    getConfigFields() {
-        return getConfigFields();
-    }
 }
-
-runEntrypoint(RiedelInstance, []);
+runEntrypoint(RiedelRSP1232HLInstance, []);
 //# sourceMappingURL=main.js.map

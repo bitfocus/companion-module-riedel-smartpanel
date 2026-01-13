@@ -80,7 +80,7 @@ export function getActions(instance) {
             ],
             callback: async (action) => {
                 const interfaceId = action.options.interface;
-                await instance.fetchNetworkStatus(interfaceId);
+                instance.fetchNetworkStatus(interfaceId);
             },
         },
         fetchAllNetworkStatus: {
@@ -88,13 +88,12 @@ export function getActions(instance) {
             description: 'Refresh network status for all interfaces',
             options: [],
             callback: async () => {
-                await instance.fetchNetworkStatus('Media1');
-                await instance.fetchNetworkStatus('Config1');
-                await instance.fetchNetworkStatus('Media2');
-                await instance.fetchNetworkSettings();
+                instance.fetchNetworkStatus('Media1');
+                instance.fetchNetworkStatus('Config1');
+                instance.fetchNetworkStatus('Media2');
+                instance.fetchNetworkSettings();
             },
         },
-
         // Device Actions
         rebootDevice: {
             name: 'Reboot Device',
@@ -109,8 +108,9 @@ export function getActions(instance) {
             ],
             callback: async (action) => {
                 if (action.options.confirm) {
-                    await instance.rebootDevice();
-                } else {
+                    instance.rebootDevice();
+                }
+                else {
                     instance.log('warn', 'Reboot not confirmed - check the confirm checkbox to execute');
                 }
             },
@@ -120,17 +120,16 @@ export function getActions(instance) {
             description: 'Retrieve device information and firmware version',
             options: [],
             callback: async () => {
-                await instance.fetchDeviceInfo();
+                instance.fetchDeviceInfo();
             },
         },
-
         // Health & Alarm Actions
         fetchHealthStatus: {
             name: 'Fetch Health Status',
             description: 'Get current device health status',
             options: [],
             callback: async () => {
-                await instance.fetchHealthStatus();
+                instance.fetchHealthStatus();
             },
         },
         fetchAlarmList: {
@@ -138,7 +137,7 @@ export function getActions(instance) {
             description: 'Get list of active alarms',
             options: [],
             callback: async () => {
-                await instance.fetchAlarmList();
+                instance.fetchAlarmList();
             },
         },
         fetchAlarmHistory: {
@@ -146,7 +145,7 @@ export function getActions(instance) {
             description: 'Get alarm history',
             options: [],
             callback: async () => {
-                await instance.fetchAlarmHistory();
+                instance.fetchAlarmHistory();
             },
         },
         refreshAllStatus: {
@@ -154,25 +153,24 @@ export function getActions(instance) {
             description: 'Fetch all status information (health, alarms, PTP, network)',
             options: [],
             callback: async () => {
-                await instance.fetchHealthStatus();
-                await instance.fetchAlarmList();
-                await instance.fetchPtpStatus();
-                await instance.fetchPtpSettings();
-                await instance.fetchNetworkStatus('Media1');
-                await instance.fetchNetworkStatus('Config1');
-                await instance.fetchNetworkStatus('Media2');
-                await instance.fetchNetworkSettings();
-                await instance.fetchDeviceInfo();
+                instance.fetchHealthStatus();
+                instance.fetchAlarmList();
+                instance.fetchPtpStatus();
+                instance.fetchPtpSettings();
+                instance.fetchNetworkStatus('Media1');
+                instance.fetchNetworkStatus('Config1');
+                instance.fetchNetworkStatus('Media2');
+                instance.fetchNetworkSettings();
+                instance.fetchDeviceInfo();
             },
         },
-
         // PTP Actions
         fetchPtpStatus: {
             name: 'Fetch PTP Status',
             description: 'Get PTP synchronization status',
             options: [],
             callback: async () => {
-                await instance.fetchPtpStatus();
+                instance.fetchPtpStatus();
             },
         },
         fetchPtpSettings: {
@@ -180,7 +178,7 @@ export function getActions(instance) {
             description: 'Get current PTP configuration',
             options: [],
             callback: async () => {
-                await instance.fetchPtpSettings();
+                instance.fetchPtpSettings();
             },
         },
         updatePtpSettings: {
@@ -212,7 +210,7 @@ export function getActions(instance) {
                 const domain = action.options.domain;
                 const hybridMode = action.options.hybridMode;
                 const timeReceiverOnly = action.options.timeReceiverOnly;
-                await instance.updatePtpSettings(domain, hybridMode, timeReceiverOnly);
+                instance.updatePtpSettings(domain, hybridMode, timeReceiverOnly);
             },
         },
         setPtpDomain: {
@@ -229,21 +227,16 @@ export function getActions(instance) {
                 },
             ],
             callback: async (action) => {
-                await instance.updatePtpSettings(
-                    action.options.domain,
-                    instance.ptpHybridMode,
-                    instance.ptpReceiverOnly
-                );
+                instance.updatePtpSettings(action.options.domain, instance.ptpHybridMode, instance.ptpReceiverOnly);
             },
         },
-
         // Control Panel Actions
         enableControlPanel: {
             name: 'Enable Control Panel',
             description: 'Enable the control panel application',
             options: [],
             callback: async () => {
-                await instance.enableControlPanel();
+                instance.enableControlPanel();
             },
         },
         disableControlPanel: {
@@ -251,7 +244,7 @@ export function getActions(instance) {
             description: 'Disable the control panel application',
             options: [],
             callback: async () => {
-                await instance.disableControlPanel();
+                instance.disableControlPanel();
             },
         },
         toggleControlPanel: {
@@ -259,17 +252,16 @@ export function getActions(instance) {
             description: 'Toggle control panel enabled/disabled state',
             options: [],
             callback: async () => {
-                await instance.toggleControlPanel();
+                instance.toggleControlPanel();
             },
         },
-
         // NMOS Actions
         enableNmos: {
             name: 'Enable NMOS',
             description: 'Enable NMOS functionality',
             options: [],
             callback: async () => {
-                await instance.enableNmos();
+                instance.enableNmos();
             },
         },
         disableNmos: {
@@ -277,7 +269,7 @@ export function getActions(instance) {
             description: 'Disable NMOS functionality',
             options: [],
             callback: async () => {
-                await instance.disableNmos();
+                instance.disableNmos();
             },
         },
         toggleNmos: {
@@ -285,7 +277,7 @@ export function getActions(instance) {
             description: 'Toggle NMOS enabled/disabled state',
             options: [],
             callback: async () => {
-                await instance.toggleNmos();
+                instance.toggleNmos();
             },
         },
         fetchNmosStatus: {
@@ -293,7 +285,7 @@ export function getActions(instance) {
             description: 'Get current NMOS status',
             options: [],
             callback: async () => {
-                await instance.fetchNmosStatus();
+                instance.fetchNmosStatus();
             },
         },
     };

@@ -19,9 +19,7 @@ export function getFeedbacks(instance) {
             callback: (feedback) => {
                 const connected = instance.isConnected();
                 if (feedback.options.showText) {
-                    return {
-                        text: connected ? 'Connected' : 'Disconnected',
-                    };
+                    return connected;
                 }
                 return connected;
             },
@@ -107,11 +105,9 @@ export function getFeedbacks(instance) {
                 let match = false;
                 if (targetStatus === 'notOK') {
                     match = health === 'Warnings' || health === 'Errors';
-                } else {
-                    match = health === targetStatus;
                 }
-                if (feedback.options.showText && match) {
-                    return { text: health };
+                else {
+                    match = health === targetStatus;
                 }
                 return match;
             },
@@ -157,9 +153,11 @@ export function getFeedbacks(instance) {
                 let bgcolor = feedback.options.unknownColor;
                 if (health === 'OK') {
                     bgcolor = feedback.options.okColor;
-                } else if (health === 'Warnings') {
+                }
+                else if (health === 'Warnings') {
                     bgcolor = feedback.options.warningColor;
-                } else if (health === 'Errors') {
+                }
+                else if (health === 'Errors') {
                     bgcolor = feedback.options.errorColor;
                 }
                 return {
@@ -212,14 +210,21 @@ export function getFeedbacks(instance) {
                 const condition = feedback.options.condition;
                 let match = false;
                 switch (condition) {
-                    case 'gt': match = count > threshold; break;
-                    case 'gte': match = count >= threshold; break;
-                    case 'eq': match = count === threshold; break;
-                    case 'lt': match = count < threshold; break;
-                    case 'lte': match = count <= threshold; break;
-                }
-                if (feedback.options.showCount && match) {
-                    return { text: `Alarms: ${count}` };
+                    case 'gt':
+                        match = count > threshold;
+                        break;
+                    case 'gte':
+                        match = count >= threshold;
+                        break;
+                    case 'eq':
+                        match = count === threshold;
+                        break;
+                    case 'lt':
+                        match = count < threshold;
+                        break;
+                    case 'lte':
+                        match = count <= threshold;
+                        break;
                 }
                 return match;
             },
@@ -257,7 +262,7 @@ export function getFeedbacks(instance) {
             callback: (feedback) => {
                 const count = instance.getAlarmCount();
                 const bgcolor = count > 0 ? feedback.options.hasAlarmColor : feedback.options.noAlarmColor;
-                const text = feedback.options.format.replace('{count}', count);
+                const text = feedback.options.format.replace('{count}', String(count));
                 return {
                     text: text,
                     color: feedback.options.textColor,
@@ -298,11 +303,9 @@ export function getFeedbacks(instance) {
                 let match = false;
                 if (targetStatus === 'notLocked') {
                     match = status !== 'TimeReceiverLocked';
-                } else {
-                    match = status === targetStatus;
                 }
-                if (feedback.options.showText && match) {
-                    return { text: status === 'TimeReceiverLocked' ? 'PTP Locked' : 'PTP Unlocked' };
+                else {
+                    match = status === targetStatus;
                 }
                 return match;
             },
@@ -350,7 +353,8 @@ export function getFeedbacks(instance) {
                 if (status === 'TimeReceiverLocked') {
                     bgcolor = feedback.options.lockedColor;
                     text = feedback.options.shortText ? 'PTP\\nLocked' : 'TimeReceiverLocked';
-                } else if (status && status !== 'Unknown') {
+                }
+                else if (status && status !== 'Unknown') {
                     bgcolor = feedback.options.unlockedColor;
                     text = feedback.options.shortText ? 'PTP\\nUnlocked' : status;
                 }
