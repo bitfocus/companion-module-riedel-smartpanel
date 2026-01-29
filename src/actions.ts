@@ -232,11 +232,7 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 				},
 			],
 			callback: async (action) => {
-				instance.updatePtpSettings(
-					action.options.domain as number,
-					instance.ptpHybridMode,
-					instance.ptpReceiverOnly
-				)
+				instance.updatePtpSettings(action.options.domain as number, instance.ptpHybridMode, instance.ptpReceiverOnly)
 			},
 		},
 

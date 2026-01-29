@@ -43,7 +43,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 	private nmosStatus = 'Unknown'
 
 	constructor(internal: unknown) {
-		super(internal as ConstructorParameters<typeof InstanceBase>[0])
+		super(internal)
 	}
 
 	async init(config: DeviceConfig): Promise<void> {
@@ -109,7 +109,13 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				this.fetchNmosStatus()
 			})
 			this.ws.on('message', (data: WebSocket.Data) => {
-				this.handleMessage(data.toString())
+				const message =
+					typeof data === 'string'
+						? data
+						: Buffer.isBuffer(data)
+							? data.toString('utf8')
+							: Buffer.from(data as ArrayBuffer).toString('utf8')
+				this.handleMessage(message)
 			})
 			this.ws.on('error', (error: Error) => {
 				this.log('error', `WebSocket error: ${error.message}`)
