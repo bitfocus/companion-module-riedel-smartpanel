@@ -41,6 +41,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 	public controlPanelEnabled = false
 	public nmosEnabled = false
 	private nmosStatus = 'Unknown'
+	private wasConnected = false
 
 	constructor(internal: unknown) {
 		super(internal)
@@ -103,6 +104,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 			this.ws.on('open', () => {
 				this.log('info', 'WebSocket connected')
 				this.updateStatus(InstanceStatus.Ok)
+				this.wasConnected = true
 				this.setVariableValues({ connection_status: 'Connected' })
 				this.checkFeedbacks('connectionStatus')
 				// Fetch initial network status and settings
@@ -136,12 +138,17 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				this.handleMessage(message)
 			})
 			this.ws.on('error', (error: Error) => {
-				this.log('error', `WebSocket error: ${error.message}`)
+				if (this.wasConnected) {
+					this.log('error', `WebSocket error: ${error.message}`)
+				}
 				this.updateStatus(InstanceStatus.ConnectionFailure, error.message)
 			})
 			this.ws.on('close', () => {
-				this.log('warn', 'WebSocket disconnected')
-				this.updateStatus(InstanceStatus.Disconnected)
+				if (this.wasConnected) {
+					this.log('warn', 'WebSocket disconnected')
+					this.updateStatus(InstanceStatus.Disconnected)
+				}
+				this.wasConnected = false
 				this.setVariableValues({ connection_status: 'Disconnected' })
 				this.checkFeedbacks('connectionStatus')
 				if (!this.reconnectTimer) {
