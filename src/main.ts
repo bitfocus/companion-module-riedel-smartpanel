@@ -81,6 +81,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 	}
 
 	private initWebSocket(): void {
+		this.wasConnected = false
 		if (this.reconnectTimer) {
 			clearTimeout(this.reconnectTimer)
 			this.reconnectTimer = null
@@ -94,6 +95,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 			return
 		}
 		if (this.ws) {
+			this.ws.removeAllListeners()
 			this.ws.close()
 			this.ws = null
 		}
