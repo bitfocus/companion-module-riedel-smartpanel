@@ -84,6 +84,14 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 			this.updateStatus(InstanceStatus.BadConfig, 'No host configured')
 			return
 		}
+		if (!this.config.port) {
+			this.updateStatus(InstanceStatus.BadConfig, 'No port configured')
+			return
+		}
+		if (this.ws) {
+			this.ws.close()
+			this.ws = null
+		}
 		const wsUrl = `ws://${this.config.host}:${this.config.port}/websocket`
 		this.log('info', `Connecting to ${wsUrl}`)
 		try {
