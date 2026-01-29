@@ -2,3 +2,6 @@ node_modules/
 *.log
 .DS_Store
 tmpclaude-*
+package-lock.json
+/dist
+*.tgz
