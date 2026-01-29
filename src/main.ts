@@ -80,6 +80,10 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 	}
 
 	private initWebSocket(): void {
+		if (this.reconnectTimer) {
+			clearTimeout(this.reconnectTimer)
+			this.reconnectTimer = null
+		}
 		if (!this.config.host) {
 			this.updateStatus(InstanceStatus.BadConfig, 'No host configured')
 			return
@@ -117,12 +121,18 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				this.fetchNmosStatus()
 			})
 			this.ws.on('message', (data: WebSocket.Data) => {
-				const message =
-					typeof data === 'string'
-						? data
-						: Buffer.isBuffer(data)
-							? data.toString('utf8')
-							: Buffer.from(data as ArrayBuffer).toString('utf8')
+				let message = ''
+				if (typeof data === 'string') {
+					message = data
+				} else if (Buffer.isBuffer(data)) {
+					message = data.toString('utf8')
+				} else if (Array.isArray(data)) {
+					// Handle Buffer[] if it occurs
+					message = Buffer.concat(data).toString('utf8')
+				} else {
+					// ArrayBuffer
+					message = Buffer.from(data).toString('utf8')
+				}
 				this.handleMessage(message)
 			})
 			this.ws.on('error', (error: Error) => {
@@ -134,9 +144,11 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				this.updateStatus(InstanceStatus.Disconnected)
 				this.setVariableValues({ connection_status: 'Disconnected' })
 				this.checkFeedbacks('connectionStatus')
-				this.reconnectTimer = setTimeout(() => {
-					this.initWebSocket()
-				}, 5000)
+				if (!this.reconnectTimer) {
+					this.reconnectTimer = setTimeout(() => {
+						this.initWebSocket()
+					}, 5000)
+				}
 			})
 		} catch (error) {
 			this.log('error', `Failed to create WebSocket: ${error}`)
