@@ -1,7 +1,6 @@
 {
 	"name": "companion-module-riedel-smartpanel",
-	"version": "1.0.0",
-	"description": "Bitfocus Companion module for Riedel Smart Panel",
+	"version": "1.0.1",
 	"main": "dist/main.js",
 	"type": "module",
 	"scripts": {
@@ -10,26 +9,11 @@
 		"lint": "eslint src/**/*.ts",
 		"format": "prettier --write src/**/*.ts"
 	},
-	"keywords": [
-		"bitfocus",
-		"companion",
-		"riedel",
-		"intercom",
-		"smartpanel",
-		"broadcast",
-		"audio",
-		"communications"
-	],
-	"author": "",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/bitfocus/companion-module-riedel-smartpanel"
 	},
-	"bugs": {
-		"url": "https://github.com/bitfocus/companion-module-riedel-smartpanel/issues"
-	},
-	"homepage": "https://github.com/bitfocus/companion-module-riedel-smartpanel#readme",
 	"dependencies": {
 		"@companion-module/base": "^1.13.4",
 		"ws": "^8.18.0"

@@ -3,7 +3,7 @@
 	"name": "Riedel Smart Panel",
 	"shortname": "smartpanel",
 	"description": "Control Riedel Smart Panel via WebSocket",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"license": "MIT",
 	"repository": "https://github.com/bitfocus/companion-module-riedel-smartpanel",
 	"bugs": "https://github.com/bitfocus/companion-module-riedel-smartpanel/issues",
@@ -21,6 +21,15 @@
 		"entrypoint": "../dist/main.js"
 	},
 	"manufacturer": "Riedel Communications",
-	"products": ["Smart Panel"],
-	"keywords": ["intercom", "broadcast", "audio", "communications", "ptp", "nmos"]
+	"products": [
+		"Smart Panel"
+	],
+	"keywords": [
+		"intercom",
+		"broadcast",
+		"audio",
+		"communications",
+		"ptp",
+		"nmos"
+	]
 }
