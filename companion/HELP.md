@@ -72,4 +72,4 @@ The panel has three network interfaces:
 ## Support
 
 For issues or feature requests, please visit:
-https://github.com/maxajbarlow/companion-module-riedel-rsp1232hl/issues
+https://github.com/bitfocus/companion-module-riedel-smartpanel/issues
