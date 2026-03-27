@@ -115,8 +115,8 @@ This module communicates with the Smart Panel via WebSocket at `ws://<host>:<por
 
 ```json
 {
-  "topic": "/Path/To/Endpoint",
-  "body": {}
+	"topic": "/Path/To/Endpoint",
+	"body": {}
 }
 ```
 
