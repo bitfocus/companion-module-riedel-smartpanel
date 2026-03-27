@@ -177,7 +177,8 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
     try {
       const data = JSON.parse(message) as WebSocketMessage;
       const topic = data.topic;
-      this.log("debug", `Received: ${topic}`);
+      this.log("debug", `Received topic: ${topic}`);
+      this.log("debug", `Received: ` + JSON.stringify(data));
 
       if (topic === "/NetworkStatus/FetchNetworkStatusResponse") {
         const body = data.body as {
@@ -300,9 +301,25 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
         this.log("info", "PTP settings updated successfully");
         this.fetchPtpSettings();
       } else if (topic === "/ControlPanelApp/FetchConfigResponse") {
-        const body = data.body as { enabled?: boolean };
+        const body = data.body as {
+          enabled?: boolean;
+          controlPanelAppConfig?: { isEnabled?: boolean };
+        };
         if (body.enabled !== undefined) {
           this.controlPanelEnabled = body.enabled;
+          this.setVariableValues({
+            control_panel_enabled: this.controlPanelEnabled ? "Yes" : "No",
+          });
+          this.checkFeedbacks("controlPanelEnabled");
+          this.log(
+            "info",
+            `Control panel enabled: ${this.controlPanelEnabled}`,
+          );
+        } else if (
+          body.controlPanelAppConfig !== undefined &&
+          body.controlPanelAppConfig.isEnabled !== undefined
+        ) {
+          this.controlPanelEnabled = body.controlPanelAppConfig.isEnabled;
           this.setVariableValues({
             control_panel_enabled: this.controlPanelEnabled ? "Yes" : "No",
           });
@@ -315,14 +332,26 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
       } else if (topic === "/ControlPanelApp/ConfigChanged") {
         this.fetchControlPanelConfig();
       } else if (topic === "/Nmos/FetchStatusResponse") {
-        const body = data.body as { enabled?: boolean; status?: string };
+        const body = data.body as {
+          enabled?: boolean;
+          status?: string;
+          isEnabled?: boolean;
+        };
         if (body.enabled !== undefined) {
           this.nmosEnabled = body.enabled;
           this.setVariableValues({
             nmos_enabled: this.nmosEnabled ? "Yes" : "No",
           });
           this.checkFeedbacks("nmosEnabled");
+        } else if (body.isEnabled !== undefined) {
+          this.nmosEnabled = body.isEnabled;
+          this.setVariableValues({
+            nmos_enabled: this.nmosEnabled ? "Yes" : "No",
+          });
+          this.checkFeedbacks("nmosEnabled");
         }
+        // TODO(Peter): Is NMOS state the same as status?
+        // {"body":{"isEnabled":false,"state":"Undefined"},"topic":"/Nmos/FetchStatusResponse"}
         if (body.status) {
           this.nmosStatus = body.status;
           this.setVariableValues({ nmos_status: this.nmosStatus });
