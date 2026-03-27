@@ -39,6 +39,22 @@ export function getVariableDefinitions(): CompanionVariableDefinition[] {
 			variableId: 'firmware_version',
 		},
 		{
+			name: 'Headset A Connector Type',
+			variableId: 'headset_a_connector_type',
+		},
+		{
+			name: 'Headset B Connector Type',
+			variableId: 'headset_b_connector_type',
+		},
+		{
+			name: 'Panel Type',
+			variableId: 'panel_type',
+		},
+		{
+			name: 'Serial Number',
+			variableId: 'serial_number',
+		},
+		{
 			name: 'MAC Address',
 			variableId: 'mac_address',
 		},
@@ -96,6 +112,10 @@ export function getDefaultVariableValues(): CompanionVariableValues {
 		media2_mac_address: 'Unknown',
 		device_name: 'Unknown',
 		firmware_version: 'Unknown',
+		headset_a_connector_type: 'Unknown',
+		headset_b_connector_type: 'Unknown',
+		panel_type: 'Unknown',
+		serial_number: 'Unknown',
 		mac_address: 'Unknown',
 		health_status: 'Unknown',
 		alarm_count: '0',

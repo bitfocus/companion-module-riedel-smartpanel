@@ -206,10 +206,24 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				const body = data.body as {
 					deviceName?: string
 					firmwareVersion?: string
+					deviceInfo?: {
+						headsetAConnectorType?: string
+						headsetBConnectorType?: string
+						panelType?: string
+						serialNumber?: string
+					}
 				}
 				const updates: Record<string, string> = {}
 				if (body.deviceName) updates.device_name = body.deviceName
 				if (body.firmwareVersion) updates.firmware_version = body.firmwareVersion
+				if (body.deviceInfo) {
+					if (body.deviceInfo.headsetAConnectorType)
+						updates.headset_a_connector_type = body.deviceInfo.headsetAConnectorType
+					if (body.deviceInfo.headsetBConnectorType)
+						updates.headset_b_connector_type = body.deviceInfo.headsetBConnectorType
+					if (body.deviceInfo.panelType) updates.panel_type = body.deviceInfo.panelType
+					if (body.deviceInfo.serialNumber) updates.serial_number = body.deviceInfo.serialNumber
+				}
 				this.setVariableValues(updates)
 			} else if (topic === '/DeviceSettings/FetchDeviceSettingsResponse') {
 				const body = data.body as {
