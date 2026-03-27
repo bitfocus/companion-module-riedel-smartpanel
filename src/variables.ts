@@ -31,6 +31,26 @@ export function getVariableDefinitions(): CompanionVariableDefinition[] {
 			variableId: 'media2_mac_address',
 		},
 		{
+			name: 'Expansion1 MAC Address',
+			variableId: 'expansion1_mac_address',
+		},
+		{
+			name: 'Media1 Link Status',
+			variableId: 'media1_link_status',
+		},
+		{
+			name: 'Config1 Link Status',
+			variableId: 'config1_link_status',
+		},
+		{
+			name: 'Media2 Link Status',
+			variableId: 'media2_link_status',
+		},
+		{
+			name: 'Expansion1 Link Status',
+			variableId: 'expansion1_link_status',
+		},
+		{
 			name: 'Device Name',
 			variableId: 'device_name',
 		},
@@ -110,6 +130,11 @@ export function getDefaultVariableValues(): CompanionVariableValues {
 		media1_mac_address: 'Unknown',
 		config1_mac_address: 'Unknown',
 		media2_mac_address: 'Unknown',
+		expansion1_mac_address: 'Unknown',
+		media1_link_status: 'Unknown',
+		config1_link_status: 'Unknown',
+		media2_link_status: 'Unknown',
+		expansion1_link_status: 'Unknown',
 		device_name: 'Unknown',
 		firmware_version: 'Unknown',
 		headset_a_connector_type: 'Unknown',

@@ -29,6 +29,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 	public config: DeviceConfig = { host: '', port: 80 }
 	private reconnectTimer: ReturnType<typeof setTimeout> | null = null
 	private interfaceIps: Map<string, string> = new Map()
+	private interfaceLinkStatuses: Map<string, string> = new Map()
 	private networkSettings: NetworkSettings | null = null
 	public healthStatus = 'Unknown'
 	private alarmList: unknown[] = []
@@ -113,6 +114,11 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				this.fetchNetworkStatus('Media1')
 				this.fetchNetworkStatus('Config1')
 				this.fetchNetworkStatus('Media2')
+				this.fetchNetworkStatus('Expansion1')
+				this.fetchNetworkLinkStatus('Media1')
+				this.fetchNetworkLinkStatus('Config1')
+				this.fetchNetworkLinkStatus('Media2')
+				this.fetchNetworkLinkStatus('Expansion1')
 				this.fetchNetworkSettings()
 				this.fetchDeviceInfo()
 				this.fetchDeviceSettings()
@@ -200,7 +206,25 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 					if (interfaceId === 'Media1') variableUpdates.media1_mac_address = macAddress
 					if (interfaceId === 'Config1') variableUpdates.config1_mac_address = macAddress
 					if (interfaceId === 'Media2') variableUpdates.media2_mac_address = macAddress
+					if (interfaceId === 'Expansion1') variableUpdates.expansion1_mac_address = macAddress
 					this.setVariableValues(variableUpdates)
+				}
+			} else if (topic === '/NetworkStatus/FetchNetworkLinkStatusResponse') {
+				const body = data.body as {
+					interfaceId?: string
+					linkStatus?: string
+				}
+				const interfaceId = body.interfaceId
+				const linkStatus = body.linkStatus
+				if (interfaceId && linkStatus) {
+					this.interfaceLinkStatuses.set(interfaceId, linkStatus)
+					const variableUpdates: Record<string, string> = {}
+					if (interfaceId === 'Media1') variableUpdates.media1_link_status = linkStatus
+					if (interfaceId === 'Config1') variableUpdates.config1_link_status = linkStatus
+					if (interfaceId === 'Media2') variableUpdates.media2_link_status = linkStatus
+					if (interfaceId === 'Expansion1') variableUpdates.expansion1_link_status = linkStatus
+					this.setVariableValues(variableUpdates)
+					this.checkFeedbacks('interfaceLinkStatus')
 				}
 			} else if (topic === '/DeviceInfo/FetchDeviceInfoResponse') {
 				const body = data.body as {
@@ -248,6 +272,10 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				this.fetchNetworkStatus('Media1')
 				this.fetchNetworkStatus('Config1')
 				this.fetchNetworkStatus('Media2')
+				// Update link status too just in case
+				this.fetchNetworkLinkStatus('Media1')
+				this.fetchNetworkLinkStatus('Config1')
+				this.fetchNetworkLinkStatus('Media2')
 			} else if (topic === '/StatusInfo/FetchHealthStatusResponse') {
 				const body = data.body as { healthStatus?: string }
 				if (body.healthStatus) {
@@ -427,6 +455,10 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		this.sendMessage('/NetworkStatus/FetchNetworkStatus', { interfaceId })
 	}
 
+	public fetchNetworkLinkStatus(interfaceId: string): void {
+		this.sendMessage('/NetworkStatus/FetchNetworkLinkStatus', { interfaceId })
+	}
+
 	public fetchNetworkSettings(): void {
 		this.sendMessage('/NetworkSettings/FetchNetworkSettings', {})
 	}
@@ -531,6 +563,10 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 
 	public getInterfaceIp(interfaceId: string): string | undefined {
 		return this.interfaceIps.get(interfaceId)
+	}
+
+	public getInterfaceLinkStatus(interfaceId: string): string | undefined {
+		return this.interfaceLinkStatuses.get(interfaceId)
 	}
 
 	public getHealthStatus(): string {

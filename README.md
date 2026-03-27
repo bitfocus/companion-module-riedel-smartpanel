@@ -16,6 +16,7 @@ Bitfocus Companion module for controlling Riedel Smart Panels via WebSocket.
 ### Feedbacks
 
 - **Connection Status**: Visual indicator for WebSocket connection state
+- **Link Status**: Shows if a particular network link is up
 - **Health Status**: Color-coded health indicator (OK/Warnings/Errors)
 - **Alarm Count**: Threshold-based alarm monitoring with customizable colors
 - **PTP Status**: PTP synchronization status (Locked/Unlocked)
@@ -33,6 +34,11 @@ Bitfocus Companion module for controlling Riedel Smart Panels via WebSocket.
 | `media1_mac_address`       | Media1 interface MAC address        |
 | `config1_mac_address`      | Config1 interface MAC address       |
 | `media2_mac_address`       | Media2 interface MAC address        |
+| `expansion1_mac_address`   | expansion1 interface MAC address    |
+| `media1_link_status`       | Media1 interface link status        |
+| `config1_link_status`      | Config1 interface link status       |
+| `media2_link_status`       | Media2 interface link status        |
+| `expansion1_link_status`   | expansion1 interface link status    |
 | `device_name`              | Device name                         |
 | `firmware_version`         | Firmware version                    |
 | `headset_a_connector_type` | Headset A connector type            |
@@ -132,6 +138,7 @@ This module communicates with the Smart Panel via WebSocket at `ws://<host>:<por
 | Topic                                    | Description                  |
 | ---------------------------------------- | ---------------------------- |
 | `/NetworkStatus/FetchNetworkStatus`      | Get network interface status |
+| `/NetworkStatus/FetchNetworkLinkStatus`  | Get network link status      |
 | `/NetworkSettings/FetchNetworkSettings`  | Get network settings         |
 | `/NetworkSettings/UpdateNetworkSettings` | Update network settings      |
 | `/DeviceInfo/FetchDeviceInfo`            | Get device information       |
