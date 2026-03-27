@@ -139,6 +139,8 @@ export function getActions(
       options: [],
       callback: async () => {
         instance.fetchDeviceInfo();
+        instance.fetchDeviceSettings();
+        instance.fetchFirmwareVersion();
       },
     },
 
@@ -182,6 +184,8 @@ export function getActions(
         instance.fetchNetworkStatus("Media2");
         instance.fetchNetworkSettings();
         instance.fetchDeviceInfo();
+        instance.fetchDeviceSettings();
+        instance.fetchFirmwareVersion();
       },
     },
 

@@ -123,6 +123,8 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
         this.fetchNetworkStatus("Media2");
         this.fetchNetworkSettings();
         this.fetchDeviceInfo();
+        this.fetchDeviceSettings();
+        this.fetchFirmwareVersion();
         // Fetch health, alarm, and PTP status
         this.fetchHealthStatus();
         this.fetchAlarmList();
@@ -209,6 +211,20 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
         if (body.deviceName) updates.device_name = body.deviceName;
         if (body.firmwareVersion)
           updates.firmware_version = body.firmwareVersion;
+        this.setVariableValues(updates);
+      } else if (topic === "/DeviceSettings/FetchDeviceSettingsResponse") {
+        const body = data.body as {
+          deviceName?: string;
+        };
+        const updates: Record<string, string> = {};
+        if (body.deviceName) updates.device_name = body.deviceName;
+        this.setVariableValues(updates);
+      } else if (topic === "/FirmwareUpdater/FetchFirmwareVersion") {
+        const body = data.body as {
+          version?: string;
+        };
+        const updates: Record<string, string> = {};
+        if (body.version) updates.firmware_version = body.version;
         this.setVariableValues(updates);
       } else if (topic === "/NetworkSettings/FetchNetworkSettingsResponse") {
         const body = data.body as { networkSettings?: NetworkSettings };
@@ -431,6 +447,14 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 
   public fetchDeviceInfo(): void {
     this.sendMessage("/DeviceInfo/FetchDeviceInfo", {});
+  }
+
+  public fetchDeviceSettings(): void {
+    this.sendMessage("/DeviceSettings/FetchDeviceSettings", {});
+  }
+
+  public fetchFirmwareVersion(): void {
+    this.sendMessage("/FirmwareUpdater/FetchFirmwareVersion", {});
   }
 
   // Health and Alarm methods
