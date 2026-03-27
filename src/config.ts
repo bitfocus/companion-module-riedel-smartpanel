@@ -1,4 +1,4 @@
-import { SomeCompanionConfigField } from '@companion-module/base'
+import { Regex, type SomeCompanionConfigField } from '@companion-module/base'
 
 export interface DeviceConfig {
 	host: string
@@ -20,7 +20,7 @@ export function getConfigFields(): SomeCompanionConfigField[] {
 			label: 'Panel IP Address',
 			width: 8,
 			default: '',
-			regex: '/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/',
+			regex: Regex.IP,
 		},
 		{
 			type: 'number',

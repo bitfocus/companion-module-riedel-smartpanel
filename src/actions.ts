@@ -1,4 +1,4 @@
-import { CompanionActionDefinitions } from '@companion-module/base'
+import { Regex, CompanionActionDefinitions } from '@companion-module/base'
 import type { RiedelRSP1232HLInstance } from './main.js'
 
 export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDefinitions {
@@ -24,21 +24,21 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 					label: 'IP Address',
 					id: 'ipAddress',
 					default: '10.46.70.52',
-					regex: '/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/',
+					regex: Regex.IP,
 				},
 				{
 					type: 'textinput',
 					label: 'Subnet Mask',
 					id: 'subnetMask',
 					default: '255.255.255.0',
-					regex: '/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/',
+					regex: Regex.IP,
 				},
 				{
 					type: 'textinput',
 					label: 'Gateway',
 					id: 'gateway',
 					default: '10.46.70.1',
-					regex: '/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/',
+					regex: Regex.IP,
 				},
 				{
 					type: 'number',
