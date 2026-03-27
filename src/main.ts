@@ -182,6 +182,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				}
 				const interfaceId = body.interfaceId
 				const ipAddress = body.ipv4Status?.ipAddress
+				const macAddress = body.macAddress
 				if (interfaceId && ipAddress) {
 					this.interfaceIps.set(interfaceId, ipAddress)
 					const variableUpdates: Record<string, string> = {}
@@ -191,8 +192,15 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 					this.setVariableValues(variableUpdates)
 					this.checkFeedbacks('interfaceIp')
 				}
-				if (body.macAddress) {
-					this.setVariableValues({ mac_address: body.macAddress })
+				if (macAddress) {
+					this.setVariableValues({ mac_address: macAddress })
+				}
+				if (interfaceId && macAddress) {
+					const variableUpdates: Record<string, string> = {}
+					if (interfaceId === 'Media1') variableUpdates.media1_mac_address = macAddress
+					if (interfaceId === 'Config1') variableUpdates.config1_mac_address = macAddress
+					if (interfaceId === 'Media2') variableUpdates.media2_mac_address = macAddress
+					this.setVariableValues(variableUpdates)
 				}
 			} else if (topic === '/DeviceInfo/FetchDeviceInfoResponse') {
 				const body = data.body as {

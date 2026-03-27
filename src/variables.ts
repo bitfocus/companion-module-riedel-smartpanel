@@ -19,6 +19,18 @@ export function getVariableDefinitions(): CompanionVariableDefinition[] {
 			variableId: 'media2_ip',
 		},
 		{
+			name: 'Media1 MAC Address',
+			variableId: 'media1_mac_address',
+		},
+		{
+			name: 'Config1 MAC Address',
+			variableId: 'config1_mac_address',
+		},
+		{
+			name: 'Media2 MAC Address',
+			variableId: 'media2_mac_address',
+		},
+		{
 			name: 'Device Name',
 			variableId: 'device_name',
 		},
@@ -79,6 +91,9 @@ export function getDefaultVariableValues(): CompanionVariableValues {
 		media1_ip: 'Unknown',
 		config1_ip: 'Unknown',
 		media2_ip: 'Unknown',
+		media1_mac_address: 'Unknown',
+		config1_mac_address: 'Unknown',
+		media2_mac_address: 'Unknown',
 		device_name: 'Unknown',
 		firmware_version: 'Unknown',
 		mac_address: 'Unknown',
