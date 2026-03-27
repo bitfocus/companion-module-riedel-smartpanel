@@ -1,34 +1,34 @@
 {
-	"name": "companion-module-riedel-smartpanel",
-	"version": "1.0.1",
-	"main": "dist/main.js",
-	"type": "module",
-	"scripts": {
-		"build": "tsc",
-		"dev": "tsc --watch",
-		"lint": "eslint src/**/*.ts",
-		"format": "prettier --write src/**/*.ts"
-	},
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/bitfocus/companion-module-riedel-smartpanel"
-	},
-	"dependencies": {
-		"@companion-module/base": "^1.13.4",
-		"ws": "^8.18.0"
-	},
-	"devDependencies": {
-		"@companion-module/tools": "^2.6.1",
-		"@types/node": "^22.10.2",
-		"@types/ws": "^8.5.13",
-		"@typescript-eslint/eslint-plugin": "^8.18.2",
-		"@typescript-eslint/parser": "^8.18.2",
-		"eslint": "^9.17.0",
-		"prettier": "^3.4.2",
-		"typescript": "^5.7.2"
-	},
-	"engines": {
-		"node": ">=18"
-	}
+  "name": "companion-module-riedel-smartpanel",
+  "version": "1.0.1",
+  "main": "dist/main.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/**/*.ts companion/* README.md *.json *.mjs"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bitfocus/companion-module-riedel-smartpanel"
+  },
+  "dependencies": {
+    "@companion-module/base": "^1.13.4",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@companion-module/tools": "^2.6.1",
+    "@types/node": "^22.10.2",
+    "@types/ws": "^8.5.13",
+    "@typescript-eslint/eslint-plugin": "^8.18.2",
+    "@typescript-eslint/parser": "^8.18.2",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
 }
