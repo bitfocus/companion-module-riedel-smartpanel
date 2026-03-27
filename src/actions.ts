@@ -84,6 +84,7 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 			callback: async (action) => {
 				const interfaceId = action.options.interface as string
 				instance.fetchNetworkStatus(interfaceId)
+				instance.fetchNetworkLinkStatus(interfaceId)
 			},
 		},
 		fetchAllNetworkStatus: {
@@ -171,6 +172,11 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 				instance.fetchNetworkStatus('Media1')
 				instance.fetchNetworkStatus('Config1')
 				instance.fetchNetworkStatus('Media2')
+				instance.fetchNetworkStatus('Expansion1')
+				instance.fetchNetworkLinkStatus('Media1')
+				instance.fetchNetworkLinkStatus('Config1')
+				instance.fetchNetworkLinkStatus('Media2')
+				instance.fetchNetworkLinkStatus('Expansion1')
 				instance.fetchNetworkSettings()
 				instance.fetchDeviceInfo()
 				instance.fetchDeviceSettings()
