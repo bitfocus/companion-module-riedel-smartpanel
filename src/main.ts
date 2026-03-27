@@ -219,7 +219,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
         const updates: Record<string, string> = {};
         if (body.deviceName) updates.device_name = body.deviceName;
         this.setVariableValues(updates);
-      } else if (topic === "/FirmwareUpdater/FetchFirmwareVersion") {
+      } else if (topic === "/FirmwareUpdater/FetchFirmwareVersionResponse") {
         const body = data.body as {
           version?: string;
         };
