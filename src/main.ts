@@ -302,6 +302,8 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 					this.checkFeedbacks('identifyEnabled')
 					this.log('info', `Identify enabled: ${this.identifyEnabled}`)
 				}
+			} else if (topic === '/Identify/StatusChanged') {
+				this.fetchIdentifyStatus()
 			} else if (topic === '/NetworkSettings/FetchNetworkSettingsResponse') {
 				const body = data.body as { networkSettings?: NetworkSettings }
 				this.networkSettings = body.networkSettings || null
@@ -317,6 +319,18 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				this.fetchNetworkLinkStatus('Media2')
 				// Update media port assignment too just in case
 				this.fetchMediaPortAssignment()
+			} else if (topic === '/NetworkStatus/NetworkStatusChanged') {
+				this.log('info', 'Network status changed')
+				const body = data.body as {
+					interfaceId?: string
+				}
+				if (body.interfaceId) {
+					this.fetchNetworkStatus(body.interfaceId)
+					// Update link status too just in case
+					this.fetchNetworkLinkStatus(body.interfaceId)
+					// Update media port assignment too just in case
+					this.fetchMediaPortAssignment()
+				}
 			} else if (topic === '/Intercom/FetchArtistConnectionStatusResponse') {
 				const body = data.body as { connectionStatus?: string }
 				if (body.connectionStatus) {
