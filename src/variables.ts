@@ -51,6 +51,22 @@ export function getVariableDefinitions(): CompanionVariableDefinition[] {
 			variableId: 'expansion1_link_status',
 		},
 		{
+			name: 'Media1 Speed',
+			variableId: 'media1_speed',
+		},
+		{
+			name: 'Media2 Speed',
+			variableId: 'media2_speed',
+		},
+		{
+			name: 'Media1 External Port',
+			variableId: 'media1_external_port',
+		},
+		{
+			name: 'Media2 External Port',
+			variableId: 'media2_external_port',
+		},
+		{
 			name: 'Device Name',
 			variableId: 'device_name',
 		},
@@ -77,6 +93,14 @@ export function getVariableDefinitions(): CompanionVariableDefinition[] {
 		{
 			name: 'MAC Address',
 			variableId: 'mac_address',
+		},
+		{
+			name: 'Identify Enabled',
+			variableId: 'identify_enabled',
+		},
+		{
+			name: 'Artist Connection Status',
+			variableId: 'artist_connection_status',
 		},
 		{
 			name: 'Health Status',
@@ -135,6 +159,10 @@ export function getDefaultVariableValues(): CompanionVariableValues {
 		config1_link_status: 'Unknown',
 		media2_link_status: 'Unknown',
 		expansion1_link_status: 'Unknown',
+		media1_speed: 'Unknown',
+		media2_speed: 'Unknown',
+		media1_external_port: 'Unknown',
+		media2_external_port: 'Unknown',
 		device_name: 'Unknown',
 		firmware_version: 'Unknown',
 		headset_a_connector_type: 'Unknown',
@@ -142,6 +170,7 @@ export function getDefaultVariableValues(): CompanionVariableValues {
 		panel_type: 'Unknown',
 		serial_number: 'Unknown',
 		mac_address: 'Unknown',
+		identify_enabled: 'Unknown',
 		health_status: 'Unknown',
 		alarm_count: '0',
 		ptp_status: 'Unknown',

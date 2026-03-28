@@ -101,6 +101,7 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 				instance.fetchNetworkLinkStatus('Media2')
 				instance.fetchNetworkLinkStatus('Expansion1')
 				instance.fetchNetworkSettings()
+				instance.fetchMediaPortAssignment()
 			},
 		},
 
@@ -132,6 +133,18 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 				instance.fetchDeviceInfo()
 				instance.fetchDeviceSettings()
 				instance.fetchFirmwareVersion()
+				instance.fetchIdentifyStatus()
+			},
+		},
+
+		// Artist Actions
+		fetchArtistInfo: {
+			name: 'Fetch Artist Info',
+			description: 'Retrieve Artist information',
+			options: [],
+			callback: async () => {
+				instance.fetchIntercomArtistName()
+				instance.fetchIntercomArtistConnectionStatus()
 			},
 		},
 
@@ -178,9 +191,13 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 				instance.fetchNetworkLinkStatus('Media2')
 				instance.fetchNetworkLinkStatus('Expansion1')
 				instance.fetchNetworkSettings()
+				instance.fetchMediaPortAssignment()
 				instance.fetchDeviceInfo()
 				instance.fetchDeviceSettings()
 				instance.fetchFirmwareVersion()
+				instance.fetchIdentifyStatus()
+				instance.fetchIntercomArtistName()
+				instance.fetchIntercomArtistConnectionStatus()
 			},
 		},
 

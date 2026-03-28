@@ -102,6 +102,31 @@ export function getFeedbacks(instance: RiedelRSP1232HLInstance): CompanionFeedba
 				return linkStatus === 'Up'
 			},
 		},
+		identifyEnabled: {
+			type: 'boolean',
+			name: 'Identify Enabled',
+			description: 'Trigger when identify is enabled/disabled',
+			defaultStyle: {
+				color: 0xffffff,
+				bgcolor: 0x00ff00,
+			},
+			options: [
+				{
+					type: 'dropdown',
+					label: 'Trigger when',
+					id: 'state',
+					default: 'enabled',
+					choices: [
+						{ id: 'enabled', label: 'Enabled' },
+						{ id: 'disabled', label: 'Disabled' },
+					],
+				},
+			],
+			callback: (feedback) => {
+				const enabled = instance.getIdentifyEnabled()
+				return feedback.options.state === 'enabled' ? enabled : !enabled
+			},
+		},
 		healthStatus: {
 			type: 'boolean',
 			name: 'Health Status',
