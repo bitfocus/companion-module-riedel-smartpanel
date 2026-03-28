@@ -124,6 +124,8 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 			options: [],
 			callback: async () => {
 				instance.fetchDeviceInfo()
+				instance.fetchDeviceSettings()
+				instance.fetchFirmwareVersion()
 			},
 		},
 
@@ -166,6 +168,8 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 				instance.fetchNetworkStatus('Media2')
 				instance.fetchNetworkSettings()
 				instance.fetchDeviceInfo()
+				instance.fetchDeviceSettings()
+				instance.fetchFirmwareVersion()
 			},
 		},
 

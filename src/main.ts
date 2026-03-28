@@ -115,6 +115,8 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				this.fetchNetworkStatus('Media2')
 				this.fetchNetworkSettings()
 				this.fetchDeviceInfo()
+				this.fetchDeviceSettings()
+				this.fetchFirmwareVersion()
 				// Fetch health, alarm, and PTP status
 				this.fetchHealthStatus()
 				this.fetchAlarmList()
@@ -169,7 +171,8 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		try {
 			const data = JSON.parse(message) as WebSocketMessage
 			const topic = data.topic
-			this.log('debug', `Received: ${topic}`)
+			this.log('debug', `Received topic: ${topic}`)
+			this.log('debug', `Received: ` + JSON.stringify(data))
 
 			if (topic === '/NetworkStatus/FetchNetworkStatusResponse') {
 				const body = data.body as {
@@ -199,6 +202,20 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				const updates: Record<string, string> = {}
 				if (body.deviceName) updates.device_name = body.deviceName
 				if (body.firmwareVersion) updates.firmware_version = body.firmwareVersion
+				this.setVariableValues(updates)
+			} else if (topic === '/DeviceSettings/FetchDeviceSettingsResponse') {
+				const body = data.body as {
+					deviceName?: string
+				}
+				const updates: Record<string, string> = {}
+				if (body.deviceName) updates.device_name = body.deviceName
+				this.setVariableValues(updates)
+			} else if (topic === '/FirmwareUpdater/FetchFirmwareVersionResponse') {
+				const body = data.body as {
+					version?: string
+				}
+				const updates: Record<string, string> = {}
+				if (body.version) updates.firmware_version = body.version
 				this.setVariableValues(updates)
 			} else if (topic === '/NetworkSettings/FetchNetworkSettingsResponse') {
 				const body = data.body as { networkSettings?: NetworkSettings }
@@ -285,9 +302,19 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				this.log('info', 'PTP settings updated successfully')
 				this.fetchPtpSettings()
 			} else if (topic === '/ControlPanelApp/FetchConfigResponse') {
-				const body = data.body as { enabled?: boolean }
+				const body = data.body as {
+					enabled?: boolean
+					controlPanelAppConfig?: { isEnabled?: boolean }
+				}
 				if (body.enabled !== undefined) {
 					this.controlPanelEnabled = body.enabled
+					this.setVariableValues({
+						control_panel_enabled: this.controlPanelEnabled ? 'Yes' : 'No',
+					})
+					this.checkFeedbacks('controlPanelEnabled')
+					this.log('info', `Control panel enabled: ${this.controlPanelEnabled}`)
+				} else if (body.controlPanelAppConfig !== undefined && body.controlPanelAppConfig.isEnabled !== undefined) {
+					this.controlPanelEnabled = body.controlPanelAppConfig.isEnabled
 					this.setVariableValues({
 						control_panel_enabled: this.controlPanelEnabled ? 'Yes' : 'No',
 					})
@@ -297,14 +324,26 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 			} else if (topic === '/ControlPanelApp/ConfigChanged') {
 				this.fetchControlPanelConfig()
 			} else if (topic === '/Nmos/FetchStatusResponse') {
-				const body = data.body as { enabled?: boolean; status?: string }
+				const body = data.body as {
+					enabled?: boolean
+					status?: string
+					isEnabled?: boolean
+				}
 				if (body.enabled !== undefined) {
 					this.nmosEnabled = body.enabled
 					this.setVariableValues({
 						nmos_enabled: this.nmosEnabled ? 'Yes' : 'No',
 					})
 					this.checkFeedbacks('nmosEnabled')
+				} else if (body.isEnabled !== undefined) {
+					this.nmosEnabled = body.isEnabled
+					this.setVariableValues({
+						nmos_enabled: this.nmosEnabled ? 'Yes' : 'No',
+					})
+					this.checkFeedbacks('nmosEnabled')
 				}
+				// TODO(Peter): Is NMOS state the same as status?
+				// {"body":{"isEnabled":false,"state":"Undefined"},"topic":"/Nmos/FetchStatusResponse"}
 				if (body.status) {
 					this.nmosStatus = body.status
 					this.setVariableValues({ nmos_status: this.nmosStatus })
@@ -377,6 +416,14 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 
 	public fetchDeviceInfo(): void {
 		this.sendMessage('/DeviceInfo/FetchDeviceInfo', {})
+	}
+
+	public fetchDeviceSettings(): void {
+		this.sendMessage('/DeviceSettings/FetchDeviceSettings', {})
+	}
+
+	public fetchFirmwareVersion(): void {
+		this.sendMessage('/FirmwareUpdater/FetchFirmwareVersion', {})
 	}
 
 	// Health and Alarm methods

@@ -128,6 +128,8 @@ This module communicates with the Smart Panel via WebSocket at `ws://<host>:<por
 | `/NetworkSettings/FetchNetworkSettings`  | Get network settings         |
 | `/NetworkSettings/UpdateNetworkSettings` | Update network settings      |
 | `/DeviceInfo/FetchDeviceInfo`            | Get device information       |
+| `/DeviceSettings/FetchDeviceSettings`    | Get device settings          |
+| `/FirmwareUpdater/FetchFirmwareVersion`  | Get firmware information     |
 | `/Reboot/RebootDevice`                   | Reboot the device            |
 | `/StatusInfo/FetchHealthStatus`          | Get health status            |
 | `/StatusInfo/FetchAlarmList`             | Get active alarms            |
