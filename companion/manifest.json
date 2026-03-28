@@ -21,15 +21,6 @@
 		"entrypoint": "../dist/main.js"
 	},
 	"manufacturer": "Riedel Communications",
-	"products": [
-		"Smart Panel"
-	],
-	"keywords": [
-		"intercom",
-		"broadcast",
-		"audio",
-		"communications",
-		"ptp",
-		"nmos"
-	]
+	"products": ["Smart Panel"],
+	"keywords": ["intercom", "broadcast", "audio", "communications", "ptp", "nmos"]
 }

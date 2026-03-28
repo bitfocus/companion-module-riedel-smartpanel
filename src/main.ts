@@ -192,7 +192,10 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 					this.setVariableValues({ mac_address: body.macAddress })
 				}
 			} else if (topic === '/DeviceInfo/FetchDeviceInfoResponse') {
-				const body = data.body as { deviceName?: string; firmwareVersion?: string }
+				const body = data.body as {
+					deviceName?: string
+					firmwareVersion?: string
+				}
 				const updates: Record<string, string> = {}
 				if (body.deviceName) updates.device_name = body.deviceName
 				if (body.firmwareVersion) updates.firmware_version = body.firmwareVersion
@@ -225,7 +228,9 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				const body = data.body as { alarmList?: unknown[] }
 				if (body.alarmList) {
 					this.alarmList = body.alarmList
-					this.setVariableValues({ alarm_count: String(this.alarmList.length) })
+					this.setVariableValues({
+						alarm_count: String(this.alarmList.length),
+					})
 					this.checkFeedbacks('alarmCount', 'alarmCountDisplay')
 					this.log('info', `Alarm count: ${this.alarmList.length}`)
 				}
@@ -238,7 +243,10 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 					this.log('info', `Alarm history received: ${this.alarmHistory.length} entries`)
 				}
 			} else if (topic === '/Ptp/FetchPtpStatusResponse') {
-				const body = data.body as { ptpStatus?: string; timeTransmitter?: string }
+				const body = data.body as {
+					ptpStatus?: string
+					timeTransmitter?: string
+				}
 				if (body.ptpStatus) {
 					this.ptpStatus = body.ptpStatus
 					this.setVariableValues({ ptp_status: this.ptpStatus })
@@ -252,18 +260,26 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 			} else if (topic === '/Ptp/PtpStatusChanged') {
 				this.fetchPtpStatus()
 			} else if (topic === '/Ptp/FetchPtpSettingsResponse') {
-				const body = data.body as { domain?: number; hybridMode?: boolean; timeReceiverOnly?: boolean }
+				const body = data.body as {
+					domain?: number
+					hybridMode?: boolean
+					timeReceiverOnly?: boolean
+				}
 				if (body.domain !== undefined) {
 					this.ptpDomain = body.domain
 					this.setVariableValues({ ptp_domain: String(this.ptpDomain) })
 				}
 				if (body.hybridMode !== undefined) {
 					this.ptpHybridMode = body.hybridMode
-					this.setVariableValues({ ptp_hybrid_mode: this.ptpHybridMode ? 'Enabled' : 'Disabled' })
+					this.setVariableValues({
+						ptp_hybrid_mode: this.ptpHybridMode ? 'Enabled' : 'Disabled',
+					})
 				}
 				if (body.timeReceiverOnly !== undefined) {
 					this.ptpReceiverOnly = body.timeReceiverOnly
-					this.setVariableValues({ ptp_receiver_only: this.ptpReceiverOnly ? 'Yes' : 'No' })
+					this.setVariableValues({
+						ptp_receiver_only: this.ptpReceiverOnly ? 'Yes' : 'No',
+					})
 				}
 			} else if (topic === '/Ptp/UpdatePtpSettingsResponse') {
 				this.log('info', 'PTP settings updated successfully')
@@ -272,7 +288,9 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				const body = data.body as { enabled?: boolean }
 				if (body.enabled !== undefined) {
 					this.controlPanelEnabled = body.enabled
-					this.setVariableValues({ control_panel_enabled: this.controlPanelEnabled ? 'Yes' : 'No' })
+					this.setVariableValues({
+						control_panel_enabled: this.controlPanelEnabled ? 'Yes' : 'No',
+					})
 					this.checkFeedbacks('controlPanelEnabled')
 					this.log('info', `Control panel enabled: ${this.controlPanelEnabled}`)
 				}
@@ -282,7 +300,9 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				const body = data.body as { enabled?: boolean; status?: string }
 				if (body.enabled !== undefined) {
 					this.nmosEnabled = body.enabled
-					this.setVariableValues({ nmos_enabled: this.nmosEnabled ? 'Yes' : 'No' })
+					this.setVariableValues({
+						nmos_enabled: this.nmosEnabled ? 'Yes' : 'No',
+					})
 					this.checkFeedbacks('nmosEnabled')
 				}
 				if (body.status) {
@@ -315,7 +335,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		subnetMask: string,
 		gateway: string,
 		prefixLength: number,
-		dhcp: boolean
+		dhcp: boolean,
 	): Promise<void> {
 		if (!this.networkSettings) {
 			this.log('warn', 'Current network settings not available, fetching...')
@@ -337,7 +357,9 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		targetInterface.ipv4Settings.networkMaskConverted = subnetMask
 		targetInterface.ipv4Settings.defaultGateway = gateway
 		targetInterface.ipv4Settings.prefixLength = prefixLength
-		this.sendMessage('/NetworkSettings/UpdateNetworkSettings', { networkSettings: updatedSettings })
+		this.sendMessage('/NetworkSettings/UpdateNetworkSettings', {
+			networkSettings: updatedSettings,
+		})
 	}
 
 	public fetchNetworkStatus(interfaceId: string): void {
@@ -380,7 +402,11 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 	}
 
 	public updatePtpSettings(domain: number, hybridMode: boolean, timeReceiverOnly: boolean): void {
-		this.sendMessage('/Ptp/UpdatePtpSettings', { domain, hybridMode, timeReceiverOnly })
+		this.sendMessage('/Ptp/UpdatePtpSettings', {
+			domain,
+			hybridMode,
+			timeReceiverOnly,
+		})
 	}
 
 	// Control Panel methods

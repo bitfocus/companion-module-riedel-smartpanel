@@ -7,7 +7,7 @@
 		"build": "tsc",
 		"dev": "tsc --watch",
 		"lint": "eslint src/**/*.ts",
-		"format": "prettier --write src/**/*.ts"
+		"format": "prettier --write src/**/*.ts companion/* README.md *.json *.mjs"
 	},
 	"license": "MIT",
 	"repository": {
@@ -30,5 +30,6 @@
 	},
 	"engines": {
 		"node": ">=18"
-	}
+	},
+	"prettier": "@companion-module/tools/.prettierrc.json"
 }
