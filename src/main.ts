@@ -521,6 +521,8 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		this.sendMessage('/NetworkSettings/UpdateNetworkSettings', {
 			networkSettings: updatedSettings,
 		})
+		// Immediately invalidate the local network settings once we've changed anything as they will be stale
+		this.networkSettings = null
 	}
 
 	public fetchNetworkStatus(interfaceId: string): void {
