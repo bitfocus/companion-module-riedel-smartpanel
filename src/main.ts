@@ -414,6 +414,8 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 			} else if (topic === '/Ptp/UpdatePtpSettingsResponse') {
 				this.log('info', 'PTP settings updated successfully')
 				this.fetchPtpSettings()
+			} else if (topic === '/Ptp/PtpSettingsChanged') {
+				this.fetchPtpSettings()
 			} else if (topic === '/ControlPanelApp/FetchConfigResponse') {
 				const body = data.body as {
 					enabled?: boolean
@@ -464,6 +466,8 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				this.log('info', `NMOS enabled: ${this.nmosEnabled}, status: ${this.nmosStatus}`)
 			} else if (topic === '/Nmos/StatusChanged') {
 				this.fetchNmosStatus()
+			} else {
+				this.log('info', `Unhandled topic: ${topic}`)
 			}
 		} catch (error) {
 			this.log('error', `Failed to parse message: ${error}`)
