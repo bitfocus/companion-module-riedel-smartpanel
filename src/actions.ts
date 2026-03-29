@@ -25,6 +25,7 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 					id: 'ipAddress',
 					default: '10.46.70.52',
 					regex: Regex.IP,
+					useVariables: true,
 				},
 				{
 					type: 'textinput',
@@ -32,6 +33,7 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 					id: 'subnetMask',
 					default: '255.255.255.0',
 					regex: Regex.IP,
+					useVariables: true,
 				},
 				{
 					type: 'textinput',
@@ -39,6 +41,7 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 					id: 'gateway',
 					default: '10.46.70.1',
 					regex: Regex.IP,
+					useVariables: true,
 				},
 				{
 					type: 'number',
@@ -55,12 +58,12 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 					default: false,
 				},
 			],
-			callback: async (action) => {
+			callback: async (action, context) => {
 				const interfaceId = action.options.interface as string
-				const ipAddress = action.options.ipAddress as string
-				const subnetMask = action.options.subnetMask as string
-				const gateway = action.options.gateway as string
-				const prefixLength = action.options.prefixLength as number
+				const ipAddress = await context.parseVariablesInString(action.options.ipAddress as string)
+				const subnetMask = await context.parseVariablesInString(action.options.subnetMask as string)
+				const gateway = await context.parseVariablesInString(action.options.gateway as string)
+				const prefixLength = action.options.prefixLength as number // numbers don't currently support variables
 				const dhcp = action.options.dhcp as boolean
 				await instance.setIpAddress(interfaceId, ipAddress, subnetMask, gateway, prefixLength, dhcp)
 			},
