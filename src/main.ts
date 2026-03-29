@@ -313,6 +313,8 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				this.log('info', `Network settings received: ${this.networkSettings ? 'OK' : 'null'}`)
 			} else if (topic === '/NetworkSettings/UpdateNetworkSettingsResponse') {
 				this.log('info', 'Network settings updated successfully')
+				// Immediately fetch fresh network settings data
+				this.fetchNetworkSettings()
 				this.fetchNetworkStatus('Media1')
 				this.fetchNetworkStatus('Config1')
 				this.fetchNetworkStatus('Media2')
