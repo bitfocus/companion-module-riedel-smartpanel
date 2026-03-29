@@ -15,7 +15,10 @@ interface NetworkSettings {
 			networkMaskConverted: string
 			defaultGateway: string
 			prefixLength: number
+			dnsServer1?: string
+			dnsServer2?: string
 		}
+		linkOperationalState?: string
 	}>
 }
 
