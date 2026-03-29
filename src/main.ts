@@ -29,7 +29,10 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 	public config: DeviceConfig = { host: '', port: 80 }
 	private reconnectTimer: ReturnType<typeof setTimeout> | null = null
 	private interfaceIps: Map<string, string> = new Map()
+	private interfaceLinkStatuses: Map<string, string> = new Map()
 	private networkSettings: NetworkSettings | null = null
+	public identifyEnabled = false
+	public artistConnectionStatus = 'Unknown'
 	public healthStatus = 'Unknown'
 	private alarmList: unknown[] = []
 	private alarmHistory: unknown[] = []
@@ -113,8 +116,19 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				this.fetchNetworkStatus('Media1')
 				this.fetchNetworkStatus('Config1')
 				this.fetchNetworkStatus('Media2')
+				this.fetchNetworkStatus('Expansion1')
+				this.fetchNetworkLinkStatus('Media1')
+				this.fetchNetworkLinkStatus('Config1')
+				this.fetchNetworkLinkStatus('Media2')
+				this.fetchNetworkLinkStatus('Expansion1')
 				this.fetchNetworkSettings()
+				this.fetchMediaPortAssignment()
 				this.fetchDeviceInfo()
+				this.fetchDeviceSettings()
+				this.fetchFirmwareVersion()
+				this.fetchIdentifyStatus()
+				this.fetchIntercomArtistName()
+				this.fetchIntercomArtistConnectionStatus()
 				// Fetch health, alarm, and PTP status
 				this.fetchHealthStatus()
 				this.fetchAlarmList()
@@ -169,7 +183,8 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		try {
 			const data = JSON.parse(message) as WebSocketMessage
 			const topic = data.topic
-			this.log('debug', `Received: ${topic}`)
+			this.log('debug', `Received topic: ${topic}`)
+			this.log('debug', `Received: ` + JSON.stringify(data))
 
 			if (topic === '/NetworkStatus/FetchNetworkStatusResponse') {
 				const body = data.body as {
@@ -179,6 +194,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				}
 				const interfaceId = body.interfaceId
 				const ipAddress = body.ipv4Status?.ipAddress
+				const macAddress = body.macAddress
 				if (interfaceId && ipAddress) {
 					this.interfaceIps.set(interfaceId, ipAddress)
 					const variableUpdates: Record<string, string> = {}
@@ -188,18 +204,106 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 					this.setVariableValues(variableUpdates)
 					this.checkFeedbacks('interfaceIp')
 				}
-				if (body.macAddress) {
-					this.setVariableValues({ mac_address: body.macAddress })
+				if (macAddress) {
+					this.setVariableValues({ mac_address: macAddress })
+				}
+				if (interfaceId && macAddress) {
+					const variableUpdates: Record<string, string> = {}
+					if (interfaceId === 'Media1') variableUpdates.media1_mac_address = macAddress
+					if (interfaceId === 'Config1') variableUpdates.config1_mac_address = macAddress
+					if (interfaceId === 'Media2') variableUpdates.media2_mac_address = macAddress
+					if (interfaceId === 'Expansion1') variableUpdates.expansion1_mac_address = macAddress
+					this.setVariableValues(variableUpdates)
+				}
+			} else if (topic === '/NetworkStatus/FetchNetworkLinkStatusResponse') {
+				const body = data.body as {
+					interfaceId?: string
+					linkStatus?: string
+				}
+				const interfaceId = body.interfaceId
+				const linkStatus = body.linkStatus
+				if (interfaceId && linkStatus) {
+					this.interfaceLinkStatuses.set(interfaceId, linkStatus)
+					const variableUpdates: Record<string, string> = {}
+					if (interfaceId === 'Media1') variableUpdates.media1_link_status = linkStatus
+					if (interfaceId === 'Config1') variableUpdates.config1_link_status = linkStatus
+					if (interfaceId === 'Media2') variableUpdates.media2_link_status = linkStatus
+					if (interfaceId === 'Expansion1') variableUpdates.expansion1_link_status = linkStatus
+					this.setVariableValues(variableUpdates)
+					this.checkFeedbacks('interfaceLinkStatus')
+				}
+			} else if (topic === '/MediaPortAssignment/FetchMediaPortAssignmentResponse') {
+				const body = data.body as {
+					mediaPortAssignment?: {
+						media1ExternalPort?: string
+						media2ExternalPort?: string
+						media1Speed?: string
+						media2Speed?: string
+					}
+				}
+				if (body.mediaPortAssignment) {
+					// this.interfaceLinkStatuses.set(interfaceId, linkStatus)
+					const variableUpdates: Record<string, string> = {}
+					if (body.mediaPortAssignment.media1ExternalPort)
+						variableUpdates.media1_external_port = body.mediaPortAssignment.media1ExternalPort
+					if (body.mediaPortAssignment.media2ExternalPort)
+						variableUpdates.media2_external_port = body.mediaPortAssignment.media2ExternalPort
+					if (body.mediaPortAssignment.media1Speed) variableUpdates.media1_speed = body.mediaPortAssignment.media1Speed
+					if (body.mediaPortAssignment.media2Speed) variableUpdates.media2_speed = body.mediaPortAssignment.media2Speed
+					this.setVariableValues(variableUpdates)
+					// this.checkFeedbacks('interfaceLinkStatus')
 				}
 			} else if (topic === '/DeviceInfo/FetchDeviceInfoResponse') {
 				const body = data.body as {
 					deviceName?: string
 					firmwareVersion?: string
+					deviceInfo?: {
+						headsetAConnectorType?: string
+						headsetBConnectorType?: string
+						panelType?: string
+						serialNumber?: string
+					}
 				}
 				const updates: Record<string, string> = {}
 				if (body.deviceName) updates.device_name = body.deviceName
 				if (body.firmwareVersion) updates.firmware_version = body.firmwareVersion
+				if (body.deviceInfo) {
+					if (body.deviceInfo.headsetAConnectorType)
+						updates.headset_a_connector_type = body.deviceInfo.headsetAConnectorType
+					if (body.deviceInfo.headsetBConnectorType)
+						updates.headset_b_connector_type = body.deviceInfo.headsetBConnectorType
+					if (body.deviceInfo.panelType) updates.panel_type = body.deviceInfo.panelType
+					if (body.deviceInfo.serialNumber) updates.serial_number = body.deviceInfo.serialNumber
+				}
 				this.setVariableValues(updates)
+			} else if (topic === '/DeviceSettings/FetchDeviceSettingsResponse') {
+				const body = data.body as {
+					deviceName?: string
+				}
+				const updates: Record<string, string> = {}
+				if (body.deviceName) updates.device_name = body.deviceName
+				this.setVariableValues(updates)
+			} else if (topic === '/FirmwareUpdater/FetchFirmwareVersionResponse') {
+				const body = data.body as {
+					version?: string
+				}
+				const updates: Record<string, string> = {}
+				if (body.version) updates.firmware_version = body.version
+				this.setVariableValues(updates)
+			} else if (topic === '/Identify/FetchStatusResponse') {
+				const body = data.body as {
+					isEnabled?: boolean
+				}
+				if (body.isEnabled !== undefined) {
+					this.identifyEnabled = body.isEnabled
+					this.setVariableValues({
+						identify_enabled: this.identifyEnabled ? 'Yes' : 'No',
+					})
+					this.checkFeedbacks('identifyEnabled')
+					this.log('info', `Identify enabled: ${this.identifyEnabled}`)
+				}
+			} else if (topic === '/Identify/StatusChanged') {
+				this.fetchIdentifyStatus()
 			} else if (topic === '/NetworkSettings/FetchNetworkSettingsResponse') {
 				const body = data.body as { networkSettings?: NetworkSettings }
 				this.networkSettings = body.networkSettings || null
@@ -209,6 +313,32 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				this.fetchNetworkStatus('Media1')
 				this.fetchNetworkStatus('Config1')
 				this.fetchNetworkStatus('Media2')
+				// Update link status too just in case
+				this.fetchNetworkLinkStatus('Media1')
+				this.fetchNetworkLinkStatus('Config1')
+				this.fetchNetworkLinkStatus('Media2')
+				// Update media port assignment too just in case
+				this.fetchMediaPortAssignment()
+			} else if (topic === '/NetworkStatus/NetworkStatusChanged') {
+				this.log('info', 'Network status changed')
+				const body = data.body as {
+					interfaceId?: string
+				}
+				if (body.interfaceId) {
+					this.fetchNetworkStatus(body.interfaceId)
+					// Update link status too just in case
+					this.fetchNetworkLinkStatus(body.interfaceId)
+					// Update media port assignment too just in case
+					this.fetchMediaPortAssignment()
+				}
+			} else if (topic === '/Intercom/FetchArtistConnectionStatusResponse') {
+				const body = data.body as { connectionStatus?: string }
+				if (body.connectionStatus) {
+					this.artistConnectionStatus = body.connectionStatus
+					this.setVariableValues({ artist_connection_status: this.artistConnectionStatus })
+					this.checkFeedbacks('artistConnectionStatus', 'artistConnectionStatusDisplay')
+					this.log('info', `Artist connection status: ${this.artistConnectionStatus}`)
+				}
 			} else if (topic === '/StatusInfo/FetchHealthStatusResponse') {
 				const body = data.body as { healthStatus?: string }
 				if (body.healthStatus) {
@@ -285,9 +415,19 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				this.log('info', 'PTP settings updated successfully')
 				this.fetchPtpSettings()
 			} else if (topic === '/ControlPanelApp/FetchConfigResponse') {
-				const body = data.body as { enabled?: boolean }
+				const body = data.body as {
+					enabled?: boolean
+					controlPanelAppConfig?: { isEnabled?: boolean }
+				}
 				if (body.enabled !== undefined) {
 					this.controlPanelEnabled = body.enabled
+					this.setVariableValues({
+						control_panel_enabled: this.controlPanelEnabled ? 'Yes' : 'No',
+					})
+					this.checkFeedbacks('controlPanelEnabled')
+					this.log('info', `Control panel enabled: ${this.controlPanelEnabled}`)
+				} else if (body.controlPanelAppConfig !== undefined && body.controlPanelAppConfig.isEnabled !== undefined) {
+					this.controlPanelEnabled = body.controlPanelAppConfig.isEnabled
 					this.setVariableValues({
 						control_panel_enabled: this.controlPanelEnabled ? 'Yes' : 'No',
 					})
@@ -297,14 +437,26 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 			} else if (topic === '/ControlPanelApp/ConfigChanged') {
 				this.fetchControlPanelConfig()
 			} else if (topic === '/Nmos/FetchStatusResponse') {
-				const body = data.body as { enabled?: boolean; status?: string }
+				const body = data.body as {
+					enabled?: boolean
+					status?: string
+					isEnabled?: boolean
+				}
 				if (body.enabled !== undefined) {
 					this.nmosEnabled = body.enabled
 					this.setVariableValues({
 						nmos_enabled: this.nmosEnabled ? 'Yes' : 'No',
 					})
 					this.checkFeedbacks('nmosEnabled')
+				} else if (body.isEnabled !== undefined) {
+					this.nmosEnabled = body.isEnabled
+					this.setVariableValues({
+						nmos_enabled: this.nmosEnabled ? 'Yes' : 'No',
+					})
+					this.checkFeedbacks('nmosEnabled')
 				}
+				// TODO(Peter): Is NMOS state the same as status?
+				// {"body":{"isEnabled":false,"state":"Undefined"},"topic":"/Nmos/FetchStatusResponse"}
 				if (body.status) {
 					this.nmosStatus = body.status
 					this.setVariableValues({ nmos_status: this.nmosStatus })
@@ -366,8 +518,16 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		this.sendMessage('/NetworkStatus/FetchNetworkStatus', { interfaceId })
 	}
 
+	public fetchNetworkLinkStatus(interfaceId: string): void {
+		this.sendMessage('/NetworkStatus/FetchNetworkLinkStatus', { interfaceId })
+	}
+
 	public fetchNetworkSettings(): void {
 		this.sendMessage('/NetworkSettings/FetchNetworkSettings', {})
+	}
+
+	public fetchMediaPortAssignment(): void {
+		this.sendMessage('/MediaPortAssignment/FetchMediaPortAssignment', {})
 	}
 
 	// Device methods
@@ -377,6 +537,46 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 
 	public fetchDeviceInfo(): void {
 		this.sendMessage('/DeviceInfo/FetchDeviceInfo', {})
+	}
+
+	public fetchDeviceSettings(): void {
+		this.sendMessage('/DeviceSettings/FetchDeviceSettings', {})
+	}
+
+	public fetchFirmwareVersion(): void {
+		this.sendMessage('/FirmwareUpdater/FetchFirmwareVersion', {})
+	}
+
+	// Identify methods
+	public fetchIdentifyStatus(): void {
+		this.sendMessage('/Identify/FetchStatus', {})
+	}
+
+	public enableIdentify(): void {
+		this.sendMessage('/Identify/Enable', {})
+		setTimeout(() => this.fetchIdentifyStatus(), 500)
+	}
+
+	public disableIdentify(): void {
+		this.sendMessage('/Identify/Disable', {})
+		setTimeout(() => this.fetchIdentifyStatus(), 500)
+	}
+
+	public toggleIdentify(): void {
+		if (this.identifyEnabled) {
+			this.disableIdentify()
+		} else {
+			this.enableIdentify()
+		}
+	}
+
+	// Artist methods
+	public fetchIntercomArtistName(): void {
+		this.sendMessage('/Intercom/FetchArtistName', {})
+	}
+
+	public fetchIntercomArtistConnectionStatus(): void {
+		this.sendMessage('/Intercom/FetchArtistConnectionStatus', {})
 	}
 
 	// Health and Alarm methods
@@ -462,6 +662,18 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 
 	public getInterfaceIp(interfaceId: string): string | undefined {
 		return this.interfaceIps.get(interfaceId)
+	}
+
+	public getInterfaceLinkStatus(interfaceId: string): string | undefined {
+		return this.interfaceLinkStatuses.get(interfaceId)
+	}
+
+	public getIdentifyEnabled(): boolean {
+		return this.identifyEnabled
+	}
+
+	public getArtistConnectionStatus(): string {
+		return this.artistConnectionStatus
 	}
 
 	public getHealthStatus(): string {

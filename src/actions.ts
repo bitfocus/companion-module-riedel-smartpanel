@@ -1,4 +1,4 @@
-import { CompanionActionDefinitions } from '@companion-module/base'
+import { Regex, CompanionActionDefinitions } from '@companion-module/base'
 import type { RiedelRSP1232HLInstance } from './main.js'
 
 export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDefinitions {
@@ -24,21 +24,21 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 					label: 'IP Address',
 					id: 'ipAddress',
 					default: '10.46.70.52',
-					regex: '/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/',
+					regex: Regex.IP,
 				},
 				{
 					type: 'textinput',
 					label: 'Subnet Mask',
 					id: 'subnetMask',
 					default: '255.255.255.0',
-					regex: '/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/',
+					regex: Regex.IP,
 				},
 				{
 					type: 'textinput',
 					label: 'Gateway',
 					id: 'gateway',
 					default: '10.46.70.1',
-					regex: '/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/',
+					regex: Regex.IP,
 				},
 				{
 					type: 'number',
@@ -84,6 +84,7 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 			callback: async (action) => {
 				const interfaceId = action.options.interface as string
 				instance.fetchNetworkStatus(interfaceId)
+				instance.fetchNetworkLinkStatus(interfaceId)
 			},
 		},
 		fetchAllNetworkStatus: {
@@ -94,7 +95,13 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 				instance.fetchNetworkStatus('Media1')
 				instance.fetchNetworkStatus('Config1')
 				instance.fetchNetworkStatus('Media2')
+				instance.fetchNetworkStatus('Expansion1')
+				instance.fetchNetworkLinkStatus('Media1')
+				instance.fetchNetworkLinkStatus('Config1')
+				instance.fetchNetworkLinkStatus('Media2')
+				instance.fetchNetworkLinkStatus('Expansion1')
 				instance.fetchNetworkSettings()
+				instance.fetchMediaPortAssignment()
 			},
 		},
 
@@ -124,6 +131,54 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 			options: [],
 			callback: async () => {
 				instance.fetchDeviceInfo()
+				instance.fetchDeviceSettings()
+				instance.fetchFirmwareVersion()
+				instance.fetchIdentifyStatus()
+			},
+		},
+
+		// Identify Actions
+		enableIdentify: {
+			name: 'Enable Identify',
+			description: 'Enable identify functionality',
+			options: [],
+			callback: async () => {
+				instance.enableIdentify()
+			},
+		},
+		disableIdentify: {
+			name: 'Disable Identify',
+			description: 'Disable identify functionality',
+			options: [],
+			callback: async () => {
+				instance.disableIdentify()
+			},
+		},
+		toggleIdentify: {
+			name: 'Toggle Identify',
+			description: 'Toggle identify enabled/disabled state',
+			options: [],
+			callback: async () => {
+				instance.toggleIdentify()
+			},
+		},
+		fetchIdentifyStatus: {
+			name: 'Fetch Identify Status',
+			description: 'Get current identify status',
+			options: [],
+			callback: async () => {
+				instance.fetchIdentifyStatus()
+			},
+		},
+
+		// Artist Actions
+		fetchArtistInfo: {
+			name: 'Fetch Artist Info',
+			description: 'Retrieve Artist information',
+			options: [],
+			callback: async () => {
+				instance.fetchIntercomArtistName()
+				instance.fetchIntercomArtistConnectionStatus()
 			},
 		},
 
@@ -164,8 +219,19 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 				instance.fetchNetworkStatus('Media1')
 				instance.fetchNetworkStatus('Config1')
 				instance.fetchNetworkStatus('Media2')
+				instance.fetchNetworkStatus('Expansion1')
+				instance.fetchNetworkLinkStatus('Media1')
+				instance.fetchNetworkLinkStatus('Config1')
+				instance.fetchNetworkLinkStatus('Media2')
+				instance.fetchNetworkLinkStatus('Expansion1')
 				instance.fetchNetworkSettings()
+				instance.fetchMediaPortAssignment()
 				instance.fetchDeviceInfo()
+				instance.fetchDeviceSettings()
+				instance.fetchFirmwareVersion()
+				instance.fetchIdentifyStatus()
+				instance.fetchIntercomArtistName()
+				instance.fetchIntercomArtistConnectionStatus()
 			},
 		},
 

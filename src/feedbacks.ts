@@ -74,6 +74,59 @@ export function getFeedbacks(instance: RiedelRSP1232HLInstance): CompanionFeedba
 				}
 			},
 		},
+		interfaceLinkStatus: {
+			type: 'boolean',
+			name: 'Interface Link Status',
+			description: 'Trigger when link status of a network interface is up',
+			defaultStyle: {
+				color: 0xffffff,
+				bgcolor: 0x00ff00,
+			},
+			options: [
+				{
+					type: 'dropdown',
+					label: 'Interface',
+					id: 'interface',
+					default: 'Media1',
+					choices: [
+						{ id: 'Config1', label: 'Config1' },
+						{ id: 'Media1', label: 'Media1' },
+						{ id: 'Media2', label: 'Media2' },
+						{ id: 'Expansion1', label: 'Expansion1' },
+					],
+				},
+			],
+			callback: (feedback) => {
+				const interfaceId = feedback.options.interface as string
+				const linkStatus = instance.getInterfaceLinkStatus(interfaceId)
+				return linkStatus === 'Up'
+			},
+		},
+		identifyEnabled: {
+			type: 'boolean',
+			name: 'Identify Enabled',
+			description: 'Trigger when identify is enabled/disabled',
+			defaultStyle: {
+				color: 0xffffff,
+				bgcolor: 0x00ff00,
+			},
+			options: [
+				{
+					type: 'dropdown',
+					label: 'Trigger when',
+					id: 'state',
+					default: 'enabled',
+					choices: [
+						{ id: 'enabled', label: 'Enabled' },
+						{ id: 'disabled', label: 'Disabled' },
+					],
+				},
+			],
+			callback: (feedback) => {
+				const enabled = instance.getIdentifyEnabled()
+				return feedback.options.state === 'enabled' ? enabled : !enabled
+			},
+		},
 		healthStatus: {
 			type: 'boolean',
 			name: 'Health Status',
