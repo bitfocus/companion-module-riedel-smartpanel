@@ -547,8 +547,27 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		this.sendMessage('/FirmwareUpdater/FetchFirmwareVersion', {})
 	}
 
+	// Identify methods
 	public fetchIdentifyStatus(): void {
 		this.sendMessage('/Identify/FetchStatus', {})
+	}
+
+	public enableIdentify(): void {
+		this.sendMessage('/Identify/Enable', {})
+		setTimeout(() => this.fetchIdentifyStatus(), 500)
+	}
+
+	public disableIdentify(): void {
+		this.sendMessage('/Identify/Disable', {})
+		setTimeout(() => this.fetchIdentifyStatus(), 500)
+	}
+
+	public toggleIdentify(): void {
+		if (this.identifyEnabled) {
+			this.disableIdentify()
+		} else {
+			this.enableIdentify()
+		}
 	}
 
 	// Artist methods

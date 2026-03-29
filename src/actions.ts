@@ -137,6 +137,40 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 			},
 		},
 
+		// Identify Actions
+		enableIdentify: {
+			name: 'Enable Identify',
+			description: 'Enable identify functionality',
+			options: [],
+			callback: async () => {
+				instance.enableIdentify()
+			},
+		},
+		disableIdentify: {
+			name: 'Disable Identify',
+			description: 'Disable identify functionality',
+			options: [],
+			callback: async () => {
+				instance.disableIdentify()
+			},
+		},
+		toggleIdentify: {
+			name: 'Toggle Identify',
+			description: 'Toggle identify enabled/disabled state',
+			options: [],
+			callback: async () => {
+				instance.toggleIdentify()
+			},
+		},
+		fetchIdentifyStatus: {
+			name: 'Fetch Identify Status',
+			description: 'Get current identify status',
+			options: [],
+			callback: async () => {
+				instance.fetchIdentifyStatus()
+			},
+		},
+
 		// Artist Actions
 		fetchArtistInfo: {
 			name: 'Fetch Artist Info',
