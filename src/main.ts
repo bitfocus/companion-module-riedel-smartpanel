@@ -157,9 +157,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				this.handleMessage(message)
 			})
 			this.ws.on('error', (error: Error) => {
-				if (this.wasConnected) {
-					this.log('error', `WebSocket error: ${error.message}`)
-				}
+				this.log('error', `WebSocket error: ${error.message}`)
 				this.updateStatus(InstanceStatus.ConnectionFailure, error.message)
 			})
 			this.ws.on('close', () => {
