@@ -20,12 +20,19 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 					],
 				},
 				{
+					type: 'checkbox',
+					label: 'Enable DHCP',
+					id: 'dhcp',
+					default: false,
+				},
+				{
 					type: 'textinput',
 					label: 'IP Address',
 					id: 'ipAddress',
 					default: '10.46.70.52',
 					regex: Regex.IP,
 					useVariables: true,
+					isVisible: (options) => !options['dhcp'],
 				},
 				{
 					type: 'textinput',
@@ -34,6 +41,7 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 					default: '255.255.255.0',
 					regex: Regex.IP,
 					useVariables: true,
+					isVisible: (options) => !options['dhcp'],
 				},
 				{
 					type: 'textinput',
@@ -42,6 +50,7 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 					default: '10.46.70.1',
 					regex: Regex.IP,
 					useVariables: true,
+					isVisible: (options) => !options['dhcp'],
 				},
 				{
 					type: 'number',
@@ -50,12 +59,7 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 					default: 24,
 					min: 0,
 					max: 32,
-				},
-				{
-					type: 'checkbox',
-					label: 'Enable DHCP',
-					id: 'dhcp',
-					default: false,
+					isVisible: (options) => !options['dhcp'],
 				},
 			],
 			callback: async (action, context) => {
