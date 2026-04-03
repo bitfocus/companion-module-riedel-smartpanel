@@ -39,6 +39,31 @@ export function getPresets(): CompanionPresetDefinitions {
 		],
 	}
 
+	presets['status_artist_connection'] = {
+		type: 'button',
+		category: 'Status Display',
+		name: 'Artist Connection Status',
+		style: {
+			text: 'Artist\nConnection',
+			size: '14',
+			color: WHITE,
+			bgcolor: GREY,
+		},
+		steps: [{ down: [{ actionId: 'fetchArtistInfo', options: {} }], up: [] }],
+		feedbacks: [
+			{
+				feedbackId: 'artistConnectionStatusDisplay',
+				options: {
+					disconnectedColor: YELLOW,
+					connectedColor: GREEN,
+					unknownColor: GREY,
+					textColor: WHITE,
+					shortText: true,
+				},
+			},
+		],
+	}
+
 	presets['status_health'] = {
 		type: 'button',
 		category: 'Status Display',

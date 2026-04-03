@@ -283,7 +283,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 					}
 				}
 				if (body.mediaPortAssignment) {
-					// this.interfaceLinkStatuses.set(interfaceId, linkStatus)
+					// TODO(Peter): Consider adding feedbacks for interface link status
 					const variableUpdates: Record<string, string> = {}
 					if (body.mediaPortAssignment.media1ExternalPort)
 						variableUpdates.media1_external_port = body.mediaPortAssignment.media1ExternalPort
@@ -292,7 +292,6 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 					if (body.mediaPortAssignment.media1Speed) variableUpdates.media1_speed = body.mediaPortAssignment.media1Speed
 					if (body.mediaPortAssignment.media2Speed) variableUpdates.media2_speed = body.mediaPortAssignment.media2Speed
 					this.setVariableValues(variableUpdates)
-					// this.checkFeedbacks('interfaceLinkStatus')
 				}
 			} else if (topic === '/DeviceInfo/FetchDeviceInfoResponse') {
 				const body = data.body as {
