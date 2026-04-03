@@ -21,7 +21,7 @@
 		"entrypoint": "../dist/main.js"
 	},
 	"manufacturer": "Riedel Communications",
-	"products": ["Smart Panel"],
+	"products": ["Smart Panel", "RSP-1216HL", "RSP-1232HL"],
 	"keywords": ["intercom", "broadcast", "audio", "communications", "ptp", "nmos"],
 	"bonjourQueries": {
 		"bonjourHost": [
