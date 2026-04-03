@@ -55,28 +55,36 @@ This module communicates with the Smart Panel via WebSocket at `ws://<host>:<por
 
 ### Supported Topics
 
-| Topic                                    | Description                  |
-| ---------------------------------------- | ---------------------------- |
-| `/NetworkStatus/FetchNetworkStatus`      | Get network interface status |
-| `/NetworkStatus/FetchNetworkLinkStatus`  | Get network link status      |
-| `/NetworkSettings/FetchNetworkSettings`  | Get network settings         |
-| `/NetworkSettings/UpdateNetworkSettings` | Update network settings      |
-| `/DeviceInfo/FetchDeviceInfo`            | Get device information       |
-| `/DeviceSettings/FetchDeviceSettings`    | Get device settings          |
-| `/FirmwareUpdater/FetchFirmwareVersion`  | Get firmware information     |
-| `/Reboot/RebootDevice`                   | Reboot the device            |
-| `/StatusInfo/FetchHealthStatus`          | Get health status            |
-| `/StatusInfo/FetchAlarmList`             | Get active alarms            |
-| `/StatusInfo/FetchAlarmHistory`          | Get alarm history            |
-| `/Ptp/FetchPtpStatus`                    | Get PTP status               |
-| `/Ptp/FetchPtpSettings`                  | Get PTP settings             |
-| `/Ptp/UpdatePtpSettings`                 | Update PTP settings          |
-| `/ControlPanelApp/FetchConfig`           | Get Control Panel state      |
-| `/ControlPanelApp/Enable`                | Enable Control Panel         |
-| `/ControlPanelApp/Disable`               | Disable Control Panel        |
-| `/Nmos/FetchStatus`                      | Get NMOS status              |
-| `/Nmos/Enable`                           | Enable NMOS                  |
-| `/Nmos/Disable`                          | Disable NMOS                 |
+The list of topics the module will send via WebSocket, this doesn't cover the different Response and Changed reply topics that are supported too.
+
+| Topic                                           | Description                                             |
+| ----------------------------------------------- | ------------------------------------------------------- |
+| `/NetworkStatus/FetchNetworkStatus`             | Get network interface status                            |
+| `/NetworkStatus/FetchNetworkLinkStatus`         | Get network link status                                 |
+| `/NetworkSettings/FetchNetworkSettings`         | Get network settings                                    |
+| `/NetworkSettings/UpdateNetworkSettings`        | Update network settings                                 |
+| `/MediaPortAssignment/FetchMediaPortAssignment` | Get media port assignment (physical network interfaces) |
+| `/DeviceInfo/FetchDeviceInfo`                   | Get device information                                  |
+| `/DeviceSettings/FetchDeviceSettings`           | Get device settings                                     |
+| `/FirmwareUpdater/FetchFirmwareVersion`         | Get firmware information                                |
+| `/Reboot/RebootDevice`                          | Reboot the device                                       |
+| `/Identify/FetchStatus`                         | Get device identify status                              |
+| `/Identify/Enable`                              | Enable device identify                                  |
+| `/Identify/Disable`                             | Disable device identify                                 |
+| `/StatusInfo/FetchHealthStatus`                 | Get health status                                       |
+| `/StatusInfo/FetchAlarmList`                    | Get active alarms                                       |
+| `/StatusInfo/FetchAlarmHistory`                 | Get alarm history                                       |
+| `/Intercom/FetchArtistName`                     | Get Artist intercom name                                |
+| `/Intercom/FetchArtistConnectionStatus`         | Get Artist intercom connection status                   |
+| `/Ptp/FetchPtpStatus`                           | Get PTP status                                          |
+| `/Ptp/FetchPtpSettings`                         | Get PTP settings                                        |
+| `/Ptp/UpdatePtpSettings`                        | Update PTP settings                                     |
+| `/ControlPanelApp/FetchConfig`                  | Get Control Panel state                                 |
+| `/ControlPanelApp/Enable`                       | Enable Control Panel                                    |
+| `/ControlPanelApp/Disable`                      | Disable Control Panel                                   |
+| `/Nmos/FetchStatus`                             | Get NMOS status                                         |
+| `/Nmos/Enable`                                  | Enable NMOS                                             |
+| `/Nmos/Disable`                                 | Disable NMOS                                            |
 
 ## Compatibility
 
