@@ -4,87 +4,7 @@ Bitfocus Companion module for controlling Riedel Smart Panels via WebSocket.
 
 ## Features
 
-### Actions
-
-- **Network Configuration**: Set IP addresses for Media1, Config1, and Media2 interfaces
-- **Device Control**: Reboot device, fetch device info
-- **Health & Alarms**: Monitor health status, active alarms, and alarm history
-- **PTP (Precision Time Protocol)**: View and configure PTP settings (domain, hybrid mode, receiver-only mode)
-- **Control Panel**: Enable/disable/toggle the Control Panel Application (intercom functionality)
-- **NMOS**: Enable/disable/toggle NMOS functionality
-
-### Feedbacks
-
-- **Connection Status**: Visual indicator for WebSocket connection state
-- **Link Status**: Shows if a particular network link is up
-- **Health Status**: Color-coded health indicator (OK/Warnings/Errors)
-- **Alarm Count**: Threshold-based alarm monitoring with customizable colors
-- **PTP Status**: PTP synchronization status (Locked/Unlocked)
-- **Control Panel Enabled**: Shows if Control Panel app is active
-- **NMOS Enabled**: Shows if NMOS is active
-
-### Variables
-
-| Variable                   | Description                         |
-| -------------------------- | ----------------------------------- |
-| `connection_status`        | Current connection state            |
-| `media1_ip`                | Media1 interface IP address         |
-| `config1_ip`               | Config1 interface IP address        |
-| `media2_ip`                | Media2 interface IP address         |
-| `media1_mac_address`       | Media1 interface MAC address        |
-| `config1_mac_address`      | Config1 interface MAC address       |
-| `media2_mac_address`       | Media2 interface MAC address        |
-| `expansion1_mac_address`   | expansion1 interface MAC address    |
-| `media1_link_status`       | Media1 interface link status        |
-| `config1_link_status`      | Config1 interface link status       |
-| `media2_link_status`       | Media2 interface link status        |
-| `expansion1_link_status`   | expansion1 interface link status    |
-| `device_name`              | Device name                         |
-| `firmware_version`         | Firmware version                    |
-| `headset_a_connector_type` | Headset A connector type            |
-| `headset_b_connector_type` | Headset B connector type            |
-| `panel_type`               | Panel type                          |
-| `serial_number`            | Serial number                       |
-| `mac_address`              | MAC address                         |
-| `health_status`            | Current health status               |
-| `alarm_count`              | Number of active alarms             |
-| `ptp_status`               | PTP synchronization status          |
-| `ptp_master`               | PTP time transmitter (master clock) |
-| `ptp_domain`               | PTP domain                          |
-| `ptp_hybrid_mode`          | PTP hybrid mode state               |
-| `ptp_receiver_only`        | PTP receiver-only mode state        |
-| `control_panel_enabled`    | Control Panel app state             |
-| `nmos_enabled`             | NMOS state                          |
-| `nmos_status`              | NMOS status                         |
-
-### Presets
-
-38 pre-configured button presets across 9 categories:
-
-- **Status Display**: Connection, health, alarms, PTP status
-- **Network Status**: Interface IP addresses
-- **Device Info**: Name, firmware, MAC address
-- **Actions**: Refresh buttons for all status types
-- **Control Panel**: Enable/disable/toggle buttons
-- **NMOS**: Enable/disable/toggle buttons
-- **PTP**: Refresh and domain selection (0-7)
-- **Device Control**: Reboot button
-- **Alert Indicators**: Health errors, active alarms, PTP unlocked, disconnected alerts
-
-## Configuration
-
-| Setting          | Description                   | Default |
-| ---------------- | ----------------------------- | ------- |
-| Panel IP Address | IP address of the Smart Panel | -       |
-| WebSocket Port   | WebSocket port (usually 80)   | 80      |
-
-## Network Interfaces
-
-The Smart Panel has three network interfaces:
-
-- **Media1**: Primary media network interface
-- **Config1**: Configuration interface
-- **Media2**: Secondary media interface
+Please see [companion/HELP.md](./companion/HELP.md) for details of features
 
 ## Development
 
@@ -165,7 +85,7 @@ This module communicates with the Smart Panel via WebSocket at `ws://<host>:<por
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT License - see [LICENSE](./LICENSE) file for details.
 
 ## Support
 
