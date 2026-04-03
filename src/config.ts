@@ -1,8 +1,9 @@
 import { Regex, type SomeCompanionConfigField } from '@companion-module/base'
 
 export interface DeviceConfig {
-	host: string
-	port: number
+	bonjourHost?: string
+	host?: string
+	port?: number
 }
 
 export function getConfigFields(): SomeCompanionConfigField[] {
@@ -15,12 +16,27 @@ export function getConfigFields(): SomeCompanionConfigField[] {
 			value: 'This module controls Riedel Smart Panels via WebSocket.',
 		},
 		{
+			type: 'bonjour-device',
+			id: 'bonjourHost',
+			label: 'Device',
+			width: 8,
+		},
+		{
+			type: 'static-text',
+			id: 'bonjourHost-filler',
+			width: 8,
+			label: '',
+			value: '',
+			isVisible: (options) => !!options['bonjourHost'],
+		},
+		{
 			type: 'textinput',
 			id: 'host',
 			label: 'Panel IP Address',
 			width: 8,
 			default: '',
 			regex: Regex.IP,
+			isVisible: (options) => !options['bonjourHost'],
 		},
 		{
 			type: 'number',
@@ -30,6 +46,7 @@ export function getConfigFields(): SomeCompanionConfigField[] {
 			default: 80,
 			min: 1,
 			max: 65535,
+			isVisible: (options) => !options['bonjourHost'],
 		},
 	]
 }

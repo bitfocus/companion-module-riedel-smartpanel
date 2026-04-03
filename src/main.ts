@@ -6,6 +6,11 @@ import { getPresets } from './presets.js'
 import { getVariableDefinitions, getDefaultVariableValues } from './variables.js'
 import WebSocket from 'ws'
 
+interface NetworkTarget {
+	ip: string
+	port?: number
+}
+
 interface NetworkSettings {
 	networkInterfaceSettings: Array<{
 		interfaceId: string
@@ -86,17 +91,51 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		return getConfigFields()
 	}
 
+	private parseIpAndPort(): NetworkTarget | undefined {
+		// TODO: Switch to Regex.IP when we can convert that into a RegExp object... (it will need some processing)
+		const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+
+		if (this.config.bonjourHost) {
+			const [ip, rawPort] = this.config.bonjourHost.split(':')
+			const port = Number(rawPort)
+			if (ip.match(ipRegex) && !isNaN(port)) {
+				return {
+					ip,
+					port,
+				}
+			}
+		} else if (this.config.host) {
+			if (this.config.host.match(ipRegex)) {
+				if (this.config.port && !isNaN(this.config.port)) {
+					return {
+						ip: this.config.host,
+						port: this.config.port,
+					}
+				} else {
+					return {
+						ip: this.config.host,
+						port: undefined,
+					}
+				}
+			}
+		}
+		return undefined
+	}
+
 	private initWebSocket(): void {
 		this.wasConnected = false
 		if (this.reconnectTimer) {
 			clearTimeout(this.reconnectTimer)
 			this.reconnectTimer = null
 		}
-		if (!this.config.host) {
+
+		let target = this.parseIpAndPort()
+
+		if (!target || !target.ip) {
 			this.updateStatus(InstanceStatus.BadConfig, 'No host configured')
 			return
 		}
-		if (!this.config.port) {
+		if (!target.port) {
 			this.updateStatus(InstanceStatus.BadConfig, 'No port configured')
 			return
 		}
@@ -105,7 +144,8 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 			this.ws.close()
 			this.ws = null
 		}
-		const wsUrl = `ws://${this.config.host}:${this.config.port}/websocket`
+
+		const wsUrl = `ws://${target.ip}:${target.port}/websocket`
 		this.log('info', `Connecting to ${wsUrl}`)
 		try {
 			this.ws = new WebSocket(wsUrl)
