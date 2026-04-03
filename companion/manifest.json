@@ -24,12 +24,28 @@
 	"products": ["Smart Panel"],
 	"keywords": ["intercom", "broadcast", "audio", "communications", "ptp", "nmos"],
 	"bonjourQueries": {
-		"bonjourHost": {
-			"type": "riedel",
-			"protocol": "tcp",
-			"txt": {
-				"DeviceType": "RSP-1216HL"
+		"bonjourHost": [
+			{
+				"type": "riedel",
+				"protocol": "tcp",
+				"txt": {
+					"DeviceType": "DSP-1216HL"
+				}
+			},
+			{
+				"type": "riedel",
+				"protocol": "tcp",
+				"txt": {
+					"DeviceType": "RSP-1216HL"
+				}
+			},
+			{
+				"type": "riedel",
+				"protocol": "tcp",
+				"txt": {
+					"DeviceType": "RSP-1232HL"
+				}
 			}
-		}
+		]
 	}
 }
