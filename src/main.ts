@@ -129,7 +129,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 			this.reconnectTimer = null
 		}
 
-		let target = this.parseIpAndPort()
+		const target = this.parseIpAndPort()
 
 		if (!target || !target.ip) {
 			this.updateStatus(InstanceStatus.BadConfig, 'No host configured')
