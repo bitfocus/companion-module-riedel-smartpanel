@@ -381,6 +381,13 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 					this.checkFeedbacks('artistConnectionStatus', 'artistConnectionStatusDisplay')
 					this.log('info', `Artist connection status: ${this.artistConnectionStatus}`)
 				}
+			} else if (topic === '/Intercom/FetchArtistNameResponse') {
+				const body = data.body as {
+					artistName?: string
+				}
+				const updates: Record<string, string> = {}
+				if (body.artistName) updates.artist_name = body.artistName
+				this.setVariableValues(updates)
 			} else if (topic === '/StatusInfo/FetchHealthStatusResponse') {
 				const body = data.body as { healthStatus?: string }
 				if (body.healthStatus) {

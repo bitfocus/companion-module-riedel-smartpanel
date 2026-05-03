@@ -103,6 +103,10 @@ export function getVariableDefinitions(): CompanionVariableDefinition[] {
 			variableId: 'artist_connection_status',
 		},
 		{
+			name: 'Artist Name',
+			variableId: 'artist_name',
+		},
+		{
 			name: 'Health Status',
 			variableId: 'health_status',
 		},
