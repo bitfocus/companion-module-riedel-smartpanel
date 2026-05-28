@@ -93,6 +93,30 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		return getConfigFields()
 	}
 
+	// Resolve the connection target. A panel selected via Bonjour discovery is
+	// stored as "ip:port" and takes precedence over the manual host/port fields.
+	private resolveTarget(): { host: string; port: number } {
+		const bonjour = this.config.bonjour_host
+		if (!bonjour) {
+			return { host: this.config.host, port: this.config.port }
+		}
+		const lastColon = bonjour.lastIndexOf(':')
+		// No colon: a bare host/IPv4 with no port — use the configured port.
+		if (lastColon === -1) {
+			return { host: bonjour, port: this.config.port }
+		}
+		const host = bonjour.slice(0, lastColon)
+		// A colon still in the host portion means an unbracketed IPv6 address with
+		// no port suffix to split off — use the whole value as the host.
+		if (host.includes(':')) {
+			return { host: bonjour, port: this.config.port }
+		}
+		// Otherwise treat it as "host:port". An empty host (e.g. ":80") falls
+		// through to the !target.host guard in initWebSocket → BadConfig.
+		const port = Number(bonjour.slice(lastColon + 1))
+		return { host, port: Number.isFinite(port) && port > 0 ? port : this.config.port }
+	}
+
 	private initWebSocket(): void {
 		this.wasConnected = false
 		this.stopPingTimer()
@@ -100,11 +124,12 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 			clearTimeout(this.reconnectTimer)
 			this.reconnectTimer = null
 		}
-		if (!this.config.host) {
+		const target = this.resolveTarget()
+		if (!target.host) {
 			this.updateStatus(InstanceStatus.BadConfig, 'No host configured')
 			return
 		}
-		if (!this.config.port) {
+		if (!target.port) {
 			this.updateStatus(InstanceStatus.BadConfig, 'No port configured')
 			return
 		}
@@ -113,7 +138,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 			this.ws.close()
 			this.ws = null
 		}
-		const wsUrl = `ws://${this.config.host}:${this.config.port}/websocket`
+		const wsUrl = `ws://${target.host}:${target.port}/websocket`
 		this.log('info', `Connecting to ${wsUrl}`)
 		try {
 			this.ws = new WebSocket(wsUrl)
