@@ -6,9 +6,11 @@ import { getPresets } from './presets.js'
 import { getVariableDefinitions, getDefaultVariableValues } from './variables.js'
 import WebSocket from 'ws'
 
-// The panel's web UI sends a /Ping every 30 seconds. We mirror that cadence and
-// treat the connection as dead once this many consecutive pings go unanswered,
-// which also catches half-open TCP connections that never emit a 'close' event.
+// The panel's web UI sends a /Ping every 30 seconds; we mirror that cadence.
+// Any /PingResponse resets the counter, so the connection is only torn down
+// after MAX_MISSED_PONGS consecutive intervals with no response at all
+// (i.e. ~60s of genuine silence). This catches half-open TCP connections that
+// never emit a 'close' event, which is the only way the link can die silently.
 const PING_INTERVAL_MS = 30000
 const MAX_MISSED_PONGS = 2
 
@@ -79,6 +81,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 
 	async configUpdated(config: DeviceConfig): Promise<void> {
 		this.config = config
+		this.stopPingTimer()
 		if (this.ws) {
 			this.ws.close()
 		}
@@ -184,13 +187,19 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		try {
 			const data = JSON.parse(message) as WebSocketMessage
 			const topic = data.topic
-			this.log('debug', `Received topic: ${topic}`)
-			this.log('debug', `Received: ` + JSON.stringify(data))
 
+			// Handle keepalive before logging so the 30s ping/pong doesn't flood
+			// the debug log and bury genuine message traces.
 			if (topic === '/PingResponse') {
 				// The panel is alive; reset the keepalive watchdog.
 				this.missedPongs = 0
-			} else if (topic === '/NetworkStatus/FetchNetworkStatusResponse') {
+				return
+			}
+
+			this.log('debug', `Received topic: ${topic}`)
+			this.log('debug', `Received: ` + JSON.stringify(data))
+
+			if (topic === '/NetworkStatus/FetchNetworkStatusResponse') {
 				const body = data.body as {
 					interfaceId?: string
 					ipv4Status?: { ipAddress?: string }
@@ -380,7 +389,10 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		}
 		const message = JSON.stringify({ topic, body })
 		this.ws.send(message)
-		this.log('debug', `Sent: ${topic}`)
+		// /Ping is sent every 30s; skip logging it to avoid debug-log noise.
+		if (topic !== '/Ping') {
+			this.log('debug', `Sent: ${topic}`)
+		}
 	}
 
 	// Keepalive: periodically send /Ping and watch for /PingResponse. If the panel
