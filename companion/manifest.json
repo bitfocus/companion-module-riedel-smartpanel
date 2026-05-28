@@ -22,5 +22,11 @@
 	},
 	"manufacturer": "Riedel Communications",
 	"products": ["Smart Panel"],
-	"keywords": ["intercom", "broadcast", "audio", "communications", "ptp", "nmos"]
+	"keywords": ["intercom", "broadcast", "audio", "communications", "ptp", "nmos"],
+	"bonjourQueries": {
+		"bonjour_host": {
+			"type": "riedel",
+			"protocol": "tcp"
+		}
+	}
 }
