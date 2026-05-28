@@ -84,16 +84,24 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 	// stored as "ip:port" and takes precedence over the manual host/port fields.
 	private resolveTarget(): { host: string; port: number } {
 		const bonjour = this.config.bonjour_host
-		if (bonjour) {
-			const lastColon = bonjour.lastIndexOf(':')
-			if (lastColon !== -1) {
-				const host = bonjour.slice(0, lastColon)
-				const port = Number(bonjour.slice(lastColon + 1))
-				return { host, port: Number.isFinite(port) && port > 0 ? port : this.config.port }
-			}
+		if (!bonjour) {
+			return { host: this.config.host, port: this.config.port }
+		}
+		const lastColon = bonjour.lastIndexOf(':')
+		// No colon: a bare host/IPv4 with no port — use the configured port.
+		if (lastColon === -1) {
 			return { host: bonjour, port: this.config.port }
 		}
-		return { host: this.config.host, port: this.config.port }
+		const host = bonjour.slice(0, lastColon)
+		// A colon still in the host portion means an unbracketed IPv6 address with
+		// no port suffix to split off — use the whole value as the host.
+		if (host.includes(':')) {
+			return { host: bonjour, port: this.config.port }
+		}
+		// Otherwise treat it as "host:port". An empty host (e.g. ":80") falls
+		// through to the !target.host guard in initWebSocket → BadConfig.
+		const port = Number(bonjour.slice(lastColon + 1))
+		return { host, port: Number.isFinite(port) && port > 0 ? port : this.config.port }
 	}
 
 	private initWebSocket(): void {

@@ -28,8 +28,8 @@ export function getConfigFields(): SomeCompanionConfigField[] {
 			id: 'bonjour_info',
 			width: 12,
 			label: '',
-			value: 'Select a discovered panel above, or choose "Manual" to enter an address below.',
-			// Only relevant when entering details manually.
+			value: 'Enter the panel IP address and port below, or select a discovered panel above.',
+			// Shown only when no discovered panel is selected (i.e. manual entry).
 			isVisible: (options) => !options['bonjour_host'],
 		},
 		{
