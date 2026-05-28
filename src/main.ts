@@ -7,10 +7,11 @@ import { getVariableDefinitions, getDefaultVariableValues } from './variables.js
 import WebSocket from 'ws'
 
 // The panel's web UI sends a /Ping every 30 seconds; we mirror that cadence.
-// Any /PingResponse resets the counter, so the connection is only torn down
-// after MAX_MISSED_PONGS consecutive intervals with no response at all
-// (i.e. ~60s of genuine silence). This catches half-open TCP connections that
-// never emit a 'close' event, which is the only way the link can die silently.
+// Any /PingResponse resets the counter to 0. The watchdog checks the counter at
+// the top of each tick before incrementing, so after MAX_MISSED_PONGS unanswered
+// pings the link is torn down on the following tick — i.e. up to ~90s of genuine
+// silence with this value. This catches half-open TCP connections that never
+// emit a 'close' event, which is the only way the link can die silently.
 const PING_INTERVAL_MS = 30000
 const MAX_MISSED_PONGS = 2
 
