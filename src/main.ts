@@ -6,6 +6,15 @@ import { getPresets } from './presets.js'
 import { getVariableDefinitions, getDefaultVariableValues } from './variables.js'
 import WebSocket from 'ws'
 
+// The panel's web UI sends a /Ping every 30 seconds; we mirror that cadence.
+// Any /PingResponse resets the counter to 0. The watchdog checks the counter at
+// the top of each tick before incrementing, so after MAX_MISSED_PONGS unanswered
+// pings the link is torn down on the following tick — i.e. up to ~90s of genuine
+// silence with this value. This catches half-open TCP connections that never
+// emit a 'close' event, which is the only way the link can die silently.
+const PING_INTERVAL_MS = 30000
+const MAX_MISSED_PONGS = 2
+
 interface NetworkSettings {
 	networkInterfaceSettings: Array<{
 		interfaceId: string
@@ -28,6 +37,8 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 	private ws: WebSocket | null = null
 	public config: DeviceConfig = { host: '', port: 80 }
 	private reconnectTimer: ReturnType<typeof setTimeout> | null = null
+	private pingTimer: ReturnType<typeof setInterval> | null = null
+	private missedPongs = 0
 	private interfaceIps: Map<string, string> = new Map()
 	private networkSettings: NetworkSettings | null = null
 	public healthStatus = 'Unknown'
@@ -58,6 +69,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 	}
 
 	async destroy(): Promise<void> {
+		this.stopPingTimer()
 		if (this.reconnectTimer) {
 			clearTimeout(this.reconnectTimer)
 			this.reconnectTimer = null
@@ -70,6 +82,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 
 	async configUpdated(config: DeviceConfig): Promise<void> {
 		this.config = config
+		this.stopPingTimer()
 		if (this.ws) {
 			this.ws.close()
 		}
@@ -82,6 +95,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 
 	private initWebSocket(): void {
 		this.wasConnected = false
+		this.stopPingTimer()
 		if (this.reconnectTimer) {
 			clearTimeout(this.reconnectTimer)
 			this.reconnectTimer = null
@@ -125,6 +139,8 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				// Fetch control panel and NMOS status
 				this.fetchControlPanelConfig()
 				this.fetchNmosStatus()
+				// Start keepalive once the connection is live
+				this.startPingTimer()
 			})
 			this.ws.on('message', (data: WebSocket.Data) => {
 				let message = ''
@@ -148,6 +164,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				this.updateStatus(InstanceStatus.ConnectionFailure, error.message)
 			})
 			this.ws.on('close', () => {
+				this.stopPingTimer()
 				if (this.wasConnected) {
 					this.log('warn', 'WebSocket disconnected')
 					this.updateStatus(InstanceStatus.Disconnected)
@@ -171,6 +188,15 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		try {
 			const data = JSON.parse(message) as WebSocketMessage
 			const topic = data.topic
+
+			// Handle keepalive before logging so the 30s ping/pong doesn't flood
+			// the debug log and bury genuine message traces.
+			if (topic === '/PingResponse') {
+				// The panel is alive; reset the keepalive watchdog.
+				this.missedPongs = 0
+				return
+			}
+
 			this.log('debug', `Received topic: ${topic}`)
 			this.log('debug', `Received: ` + JSON.stringify(data))
 
@@ -364,7 +390,39 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		}
 		const message = JSON.stringify({ topic, body })
 		this.ws.send(message)
-		this.log('debug', `Sent: ${topic}`)
+		// /Ping is sent every 30s; skip logging it to avoid debug-log noise.
+		if (topic !== '/Ping') {
+			this.log('debug', `Sent: ${topic}`)
+		}
+	}
+
+	// Keepalive: periodically send /Ping and watch for /PingResponse. If the panel
+	// stops responding we forcibly tear down the socket so the existing 'close'
+	// handler schedules a reconnect — this is what detects a silently dropped link.
+	private startPingTimer(): void {
+		this.stopPingTimer()
+		this.missedPongs = 0
+		this.pingTimer = setInterval(() => {
+			if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+				return
+			}
+			if (this.missedPongs >= MAX_MISSED_PONGS) {
+				this.log('warn', `No /PingResponse after ${this.missedPongs} pings, treating connection as dead`)
+				this.updateStatus(InstanceStatus.Disconnected, 'No response to ping')
+				this.ws.terminate()
+				return
+			}
+			this.missedPongs++
+			this.sendMessage('/Ping', {})
+		}, PING_INTERVAL_MS)
+	}
+
+	private stopPingTimer(): void {
+		if (this.pingTimer) {
+			clearInterval(this.pingTimer)
+			this.pingTimer = null
+		}
+		this.missedPongs = 0
 	}
 
 	// Network methods
