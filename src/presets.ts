@@ -39,6 +39,31 @@ export function getPresets(): CompanionPresetDefinitions {
 		],
 	}
 
+	presets['status_artist_connection'] = {
+		type: 'button',
+		category: 'Status Display',
+		name: 'Artist Connection Status',
+		style: {
+			text: 'Artist\nConnection',
+			size: '14',
+			color: WHITE,
+			bgcolor: GREY,
+		},
+		steps: [{ down: [{ actionId: 'fetchArtistInfo', options: {} }], up: [] }],
+		feedbacks: [
+			{
+				feedbackId: 'artistConnectionStatusDisplay',
+				options: {
+					disconnectedColor: YELLOW,
+					connectedColor: GREEN,
+					unknownColor: GREY,
+					textColor: WHITE,
+					shortText: true,
+				},
+			},
+		],
+	}
+
 	presets['status_health'] = {
 		type: 'button',
 		category: 'Status Display',
@@ -271,6 +296,97 @@ export function getPresets(): CompanionPresetDefinitions {
 			bgcolor: DARK_BLUE,
 		},
 		steps: [{ down: [], up: [] }],
+		feedbacks: [],
+	}
+
+	// ==================== IDENTIFY PRESETS ====================
+
+	presets['identify_status'] = {
+		type: 'button',
+		category: 'Identify',
+		name: 'Identify Status',
+		style: {
+			text: 'Identify',
+			size: '14',
+			color: WHITE,
+			bgcolor: GREY,
+		},
+		steps: [{ down: [{ actionId: 'toggleIdentify', options: {} }], up: [] }],
+		feedbacks: [
+			{
+				feedbackId: 'identifyEnabled',
+				options: { state: 'enabled' },
+				style: {
+					bgcolor: GREEN,
+					text: 'IDENTIFY\\nON',
+				},
+			},
+			{
+				feedbackId: 'identifyEnabled',
+				options: { state: 'disabled' },
+				style: {
+					bgcolor: RED,
+					text: 'IDENTIFY\\nOFF',
+				},
+			},
+		],
+	}
+
+	presets['identify_enable'] = {
+		type: 'button',
+		category: 'Identify',
+		name: 'Enable Identify',
+		style: {
+			text: 'ENABLE\\nIDENTIFY',
+			size: '14',
+			color: WHITE,
+			bgcolor: DARK_GREEN,
+		},
+		steps: [{ down: [{ actionId: 'enableIdentify', options: {} }], up: [] }],
+		feedbacks: [
+			{
+				feedbackId: 'identifyEnabled',
+				options: { state: 'enabled' },
+				style: {
+					bgcolor: GREEN,
+				},
+			},
+		],
+	}
+
+	presets['identify_disable'] = {
+		type: 'button',
+		category: 'Identify',
+		name: 'Disable Identify',
+		style: {
+			text: 'DISABLE\\nIDENTIFY',
+			size: '14',
+			color: WHITE,
+			bgcolor: DARK_RED,
+		},
+		steps: [{ down: [{ actionId: 'disableIdentify', options: {} }], up: [] }],
+		feedbacks: [
+			{
+				feedbackId: 'identifyEnabled',
+				options: { state: 'disabled' },
+				style: {
+					bgcolor: RED,
+				},
+			},
+		],
+	}
+
+	presets['identify_refresh'] = {
+		type: 'button',
+		category: 'Identify',
+		name: 'Refresh Identify',
+		style: {
+			text: 'REFRESH\\nIDENTIFY',
+			size: '14',
+			color: WHITE,
+			bgcolor: BLUE,
+		},
+		steps: [{ down: [{ actionId: 'fetchIdentifyStatus', options: {} }], up: [] }],
 		feedbacks: [],
 	}
 

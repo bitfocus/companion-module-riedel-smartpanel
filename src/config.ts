@@ -1,11 +1,9 @@
-import { SomeCompanionConfigField } from '@companion-module/base'
+import { Regex, type SomeCompanionConfigField } from '@companion-module/base'
 
 export interface DeviceConfig {
-	host: string
-	port: number
-	// Populated by the 'bonjour-device' picker as "ip:port" when a discovered
-	// panel is selected, or null when the user chooses Manual entry.
-	bonjour_host?: string | null
+	bonjourHost?: string
+	host?: string
+	port?: number
 }
 
 export function getConfigFields(): SomeCompanionConfigField[] {
@@ -19,18 +17,17 @@ export function getConfigFields(): SomeCompanionConfigField[] {
 		},
 		{
 			type: 'bonjour-device',
-			id: 'bonjour_host',
-			label: 'Panel (auto-discovered)',
-			width: 12,
+			id: 'bonjourHost',
+			label: 'Device',
+			width: 8,
 		},
 		{
 			type: 'static-text',
-			id: 'bonjour_info',
-			width: 12,
+			id: 'bonjourHost-filler',
+			width: 8,
 			label: '',
-			value: 'Enter the panel IP address and port below, or select a discovered panel above.',
-			// Shown only when no discovered panel is selected (i.e. manual entry).
-			isVisible: (options) => !options['bonjour_host'],
+			value: '',
+			isVisible: (options) => !!options['bonjourHost'],
 		},
 		{
 			type: 'textinput',
@@ -38,8 +35,8 @@ export function getConfigFields(): SomeCompanionConfigField[] {
 			label: 'Panel IP Address',
 			width: 8,
 			default: '',
-			regex: '/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/',
-			isVisible: (options) => !options['bonjour_host'],
+			regex: Regex.IP,
+			isVisible: (options) => !options['bonjourHost'],
 		},
 		{
 			type: 'number',
@@ -49,7 +46,7 @@ export function getConfigFields(): SomeCompanionConfigField[] {
 			default: 80,
 			min: 1,
 			max: 65535,
-			isVisible: (options) => !options['bonjour_host'],
+			isVisible: (options) => !options['bonjourHost'],
 		},
 	]
 }

@@ -74,6 +74,151 @@ export function getFeedbacks(instance: RiedelRSP1232HLInstance): CompanionFeedba
 				}
 			},
 		},
+		interfaceLinkStatus: {
+			type: 'boolean',
+			name: 'Interface Link Status',
+			description: 'Trigger when link status of a network interface is up',
+			defaultStyle: {
+				color: 0xffffff,
+				bgcolor: 0x00ff00,
+			},
+			options: [
+				{
+					type: 'dropdown',
+					label: 'Interface',
+					id: 'interface',
+					default: 'Media1',
+					choices: [
+						{ id: 'Config1', label: 'Config1' },
+						{ id: 'Media1', label: 'Media1' },
+						{ id: 'Media2', label: 'Media2' },
+						{ id: 'Expansion1', label: 'Expansion1' },
+					],
+				},
+			],
+			callback: (feedback) => {
+				const interfaceId = feedback.options.interface as string
+				const linkStatus = instance.getInterfaceLinkStatus(interfaceId)
+				return linkStatus === 'Up'
+			},
+		},
+		identifyEnabled: {
+			type: 'boolean',
+			name: 'Identify Enabled',
+			description: 'Trigger when identify is enabled/disabled',
+			defaultStyle: {
+				color: 0xffffff,
+				bgcolor: 0x00ff00,
+			},
+			options: [
+				{
+					type: 'dropdown',
+					label: 'Trigger when',
+					id: 'state',
+					default: 'enabled',
+					choices: [
+						{ id: 'enabled', label: 'Enabled' },
+						{ id: 'disabled', label: 'Disabled' },
+					],
+				},
+			],
+			callback: (feedback) => {
+				const enabled = instance.getIdentifyEnabled()
+				return feedback.options.state === 'enabled' ? enabled : !enabled
+			},
+		},
+		artistConnectionStatus: {
+			type: 'boolean',
+			name: 'Artist Connection Status',
+			description: 'Trigger when Artist connection is in specific state',
+			defaultStyle: {
+				color: 0xffffff,
+				bgcolor: 0x00ff00,
+			},
+			options: [
+				{
+					type: 'dropdown',
+					label: 'Trigger when Artist connection is',
+					id: 'status',
+					default: 'Connected',
+					choices: [
+						{ id: 'Disconnected', label: 'Disconnected' },
+						{ id: 'Connected', label: 'Connected' }, // TODO(Peter): This state is a guess
+						// TODO(Peter): Add any other states...
+					],
+				},
+				{
+					type: 'checkbox',
+					label: 'Show status text',
+					id: 'showText',
+					default: false,
+				},
+			],
+			callback: (feedback) => {
+				const status = instance.getArtistConnectionStatus()
+				const targetStatus = feedback.options.status as string
+				let match = false
+				match = status === targetStatus
+				return match
+			},
+		},
+		artistConnectionStatusDisplay: {
+			type: 'advanced',
+			name: 'Artist Connection Status Display',
+			description: 'Display Artist connection status with customizable colors',
+			options: [
+				{
+					type: 'colorpicker',
+					label: 'Disconnected Color',
+					id: 'disconnectedColor',
+					default: 0xffaa00,
+				},
+				// TODO(Peter): This state is a guess
+				{
+					type: 'colorpicker',
+					label: 'Connected Color',
+					id: 'connectedColor',
+					default: 0x00ff00,
+				},
+				{
+					type: 'colorpicker',
+					label: 'Unknown Color',
+					id: 'unknownColor',
+					default: 0x888888,
+				},
+				// TODO(Peter): Add any other states...
+				{
+					type: 'colorpicker',
+					label: 'Text Color',
+					id: 'textColor',
+					default: 0xffffff,
+				},
+				{
+					type: 'checkbox',
+					label: 'Short text',
+					id: 'shortText',
+					default: true,
+				},
+			],
+			callback: (feedback) => {
+				const status = instance.getArtistConnectionStatus()
+				let bgcolor = feedback.options.unknownColor as number
+				let text = status || 'Unknown'
+				if (status === 'Disconnected') {
+					bgcolor = feedback.options.disconnectedColor as number
+					text = (feedback.options.shortText as boolean) ? 'Artist Connection\\nDisconnected' : 'Disconnected'
+				} else if (status === 'Connected') {
+					bgcolor = feedback.options.connectedColor as number
+					text = (feedback.options.shortText as boolean) ? 'Artist Connection\\nConnected' : 'Connected'
+				}
+				// TODO(Peter): Add any other states...
+				return {
+					text: text,
+					color: feedback.options.textColor as number,
+					bgcolor: bgcolor,
+				}
+			},
+		},
 		healthStatus: {
 			type: 'boolean',
 			name: 'Health Status',

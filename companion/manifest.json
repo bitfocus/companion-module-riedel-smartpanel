@@ -21,12 +21,31 @@
 		"entrypoint": "../dist/main.js"
 	},
 	"manufacturer": "Riedel Communications",
-	"products": ["Smart Panel"],
+	"products": ["Smart Panel", "RSP-1216HL", "RSP-1232HL"],
 	"keywords": ["intercom", "broadcast", "audio", "communications", "ptp", "nmos"],
 	"bonjourQueries": {
-		"bonjour_host": {
-			"type": "riedel",
-			"protocol": "tcp"
-		}
+		"bonjourHost": [
+			{
+				"type": "riedel",
+				"protocol": "tcp",
+				"txt": {
+					"DeviceType": "DSP-1216HL"
+				}
+			},
+			{
+				"type": "riedel",
+				"protocol": "tcp",
+				"txt": {
+					"DeviceType": "RSP-1216HL"
+				}
+			},
+			{
+				"type": "riedel",
+				"protocol": "tcp",
+				"txt": {
+					"DeviceType": "RSP-1232HL"
+				}
+			}
+		]
 	}
 }
