@@ -6,6 +6,15 @@ import { getPresets } from './presets.js'
 import { getVariableDefinitions, getDefaultVariableValues } from './variables.js'
 import WebSocket from 'ws'
 
+// The panel's web UI sends a /Ping every 30 seconds; we mirror that cadence.
+// Any /PingResponse resets the counter to 0. The watchdog checks the counter at
+// the top of each tick before incrementing, so after MAX_MISSED_PONGS unanswered
+// pings the link is torn down on the following tick — i.e. up to ~90s of genuine
+// silence with this value. This catches half-open TCP connections that never
+// emit a 'close' event, which is the only way the link can die silently.
+const PING_INTERVAL_MS = 30000
+const MAX_MISSED_PONGS = 2
+
 interface NetworkSettings {
 	networkInterfaceSettings: Array<{
 		interfaceId: string
@@ -28,6 +37,8 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 	private ws: WebSocket | null = null
 	public config: DeviceConfig = { host: '', port: 80 }
 	private reconnectTimer: ReturnType<typeof setTimeout> | null = null
+	private pingTimer: ReturnType<typeof setInterval> | null = null
+	private missedPongs = 0
 	private interfaceIps: Map<string, string> = new Map()
 	private networkSettings: NetworkSettings | null = null
 	public healthStatus = 'Unknown'
@@ -42,9 +53,10 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 	public nmosEnabled = false
 	private nmosStatus = 'Unknown'
 	public identifyEnabled = false
+	private wasConnected = false
 
 	constructor(internal: unknown) {
-		super(internal as ConstructorParameters<typeof InstanceBase>[0])
+		super(internal)
 	}
 
 	async init(config: DeviceConfig): Promise<void> {
@@ -58,6 +70,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 	}
 
 	async destroy(): Promise<void> {
+		this.stopPingTimer()
 		if (this.reconnectTimer) {
 			clearTimeout(this.reconnectTimer)
 			this.reconnectTimer = null
@@ -70,6 +83,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 
 	async configUpdated(config: DeviceConfig): Promise<void> {
 		this.config = config
+		this.stopPingTimer()
 		if (this.ws) {
 			this.ws.close()
 		}
@@ -80,18 +94,59 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		return getConfigFields()
 	}
 
+	// Resolve the connection target. A panel selected via Bonjour discovery is
+	// stored as "ip:port" and takes precedence over the manual host/port fields.
+	private resolveTarget(): { host: string; port: number } {
+		const bonjour = this.config.bonjour_host
+		if (!bonjour) {
+			return { host: this.config.host, port: this.config.port }
+		}
+		const lastColon = bonjour.lastIndexOf(':')
+		// No colon: a bare host/IPv4 with no port — use the configured port.
+		if (lastColon === -1) {
+			return { host: bonjour, port: this.config.port }
+		}
+		const host = bonjour.slice(0, lastColon)
+		// A colon still in the host portion means an unbracketed IPv6 address with
+		// no port suffix to split off — use the whole value as the host.
+		if (host.includes(':')) {
+			return { host: bonjour, port: this.config.port }
+		}
+		// Otherwise treat it as "host:port". An empty host (e.g. ":80") falls
+		// through to the !target.host guard in initWebSocket → BadConfig.
+		const port = Number(bonjour.slice(lastColon + 1))
+		return { host, port: Number.isFinite(port) && port > 0 ? port : this.config.port }
+	}
+
 	private initWebSocket(): void {
-		if (!this.config.host) {
+		this.wasConnected = false
+		this.stopPingTimer()
+		if (this.reconnectTimer) {
+			clearTimeout(this.reconnectTimer)
+			this.reconnectTimer = null
+		}
+		const target = this.resolveTarget()
+		if (!target.host) {
 			this.updateStatus(InstanceStatus.BadConfig, 'No host configured')
 			return
 		}
-		const wsUrl = `ws://${this.config.host}:${this.config.port}/websocket`
+		if (!target.port) {
+			this.updateStatus(InstanceStatus.BadConfig, 'No port configured')
+			return
+		}
+		if (this.ws) {
+			this.ws.removeAllListeners()
+			this.ws.close()
+			this.ws = null
+		}
+		const wsUrl = `ws://${target.host}:${target.port}/websocket`
 		this.log('info', `Connecting to ${wsUrl}`)
 		try {
 			this.ws = new WebSocket(wsUrl)
 			this.ws.on('open', () => {
 				this.log('info', 'WebSocket connected')
 				this.updateStatus(InstanceStatus.Ok)
+				this.wasConnected = true
 				this.setVariableValues({ connection_status: 'Connected' })
 				this.checkFeedbacks('connectionStatus')
 				// Fetch initial network status and settings
@@ -100,6 +155,8 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				this.fetchNetworkStatus('Media2')
 				this.fetchNetworkSettings()
 				this.fetchDeviceInfo()
+				this.fetchDeviceSettings()
+				this.fetchFirmwareVersion()
 				// Fetch health, alarm, and PTP status
 				this.fetchHealthStatus()
 				this.fetchAlarmList()
@@ -109,22 +166,44 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				this.fetchControlPanelConfig()
 				this.fetchNmosStatus()
 				this.fetchIdentifyStatus()
+				// Start keepalive once the connection is live
+				this.startPingTimer()
 			})
 			this.ws.on('message', (data: WebSocket.Data) => {
-				this.handleMessage(data.toString())
+				let message = ''
+				if (typeof data === 'string') {
+					message = data
+				} else if (Buffer.isBuffer(data)) {
+					message = data.toString('utf8')
+				} else if (Array.isArray(data)) {
+					// Handle Buffer[] if it occurs
+					message = Buffer.concat(data).toString('utf8')
+				} else {
+					// ArrayBuffer
+					message = Buffer.from(data).toString('utf8')
+				}
+				this.handleMessage(message)
 			})
 			this.ws.on('error', (error: Error) => {
-				this.log('error', `WebSocket error: ${error.message}`)
+				if (this.wasConnected) {
+					this.log('error', `WebSocket error: ${error.message}`)
+				}
 				this.updateStatus(InstanceStatus.ConnectionFailure, error.message)
 			})
 			this.ws.on('close', () => {
-				this.log('warn', 'WebSocket disconnected')
-				this.updateStatus(InstanceStatus.Disconnected)
+				this.stopPingTimer()
+				if (this.wasConnected) {
+					this.log('warn', 'WebSocket disconnected')
+					this.updateStatus(InstanceStatus.Disconnected)
+				}
+				this.wasConnected = false
 				this.setVariableValues({ connection_status: 'Disconnected' })
 				this.checkFeedbacks('connectionStatus')
-				this.reconnectTimer = setTimeout(() => {
-					this.initWebSocket()
-				}, 5000)
+				if (!this.reconnectTimer) {
+					this.reconnectTimer = setTimeout(() => {
+						this.initWebSocket()
+					}, 5000)
+				}
 			})
 		} catch (error) {
 			this.log('error', `Failed to create WebSocket: ${error}`)
@@ -136,7 +215,17 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		try {
 			const data = JSON.parse(message) as WebSocketMessage
 			const topic = data.topic
-			this.log('debug', `Received: ${topic}`)
+
+			// Handle keepalive before logging so the 30s ping/pong doesn't flood
+			// the debug log and bury genuine message traces.
+			if (topic === '/PingResponse') {
+				// The panel is alive; reset the keepalive watchdog.
+				this.missedPongs = 0
+				return
+			}
+
+			this.log('debug', `Received topic: ${topic}`)
+			this.log('debug', `Received: ` + JSON.stringify(data))
 
 			if (topic === '/NetworkStatus/FetchNetworkStatusResponse') {
 				const body = data.body as {
@@ -159,10 +248,27 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 					this.setVariableValues({ mac_address: body.macAddress })
 				}
 			} else if (topic === '/DeviceInfo/FetchDeviceInfoResponse') {
-				const body = data.body as { deviceName?: string; firmwareVersion?: string }
+				const body = data.body as {
+					deviceName?: string
+					firmwareVersion?: string
+				}
 				const updates: Record<string, string> = {}
 				if (body.deviceName) updates.device_name = body.deviceName
 				if (body.firmwareVersion) updates.firmware_version = body.firmwareVersion
+				this.setVariableValues(updates)
+			} else if (topic === '/DeviceSettings/FetchDeviceSettingsResponse') {
+				const body = data.body as {
+					deviceName?: string
+				}
+				const updates: Record<string, string> = {}
+				if (body.deviceName) updates.device_name = body.deviceName
+				this.setVariableValues(updates)
+			} else if (topic === '/FirmwareUpdater/FetchFirmwareVersionResponse') {
+				const body = data.body as {
+					version?: string
+				}
+				const updates: Record<string, string> = {}
+				if (body.version) updates.firmware_version = body.version
 				this.setVariableValues(updates)
 			} else if (topic === '/NetworkSettings/FetchNetworkSettingsResponse') {
 				const body = data.body as { networkSettings?: NetworkSettings }
@@ -192,7 +298,9 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 				const body = data.body as { alarmList?: unknown[] }
 				if (body.alarmList) {
 					this.alarmList = body.alarmList
-					this.setVariableValues({ alarm_count: String(this.alarmList.length) })
+					this.setVariableValues({
+						alarm_count: String(this.alarmList.length),
+					})
 					this.checkFeedbacks('alarmCount', 'alarmCountDisplay')
 					this.log('info', `Alarm count: ${this.alarmList.length}`)
 				}
@@ -205,7 +313,10 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 					this.log('info', `Alarm history received: ${this.alarmHistory.length} entries`)
 				}
 			} else if (topic === '/Ptp/FetchPtpStatusResponse') {
-				const body = data.body as { ptpStatus?: string; timeTransmitter?: string }
+				const body = data.body as {
+					ptpStatus?: string
+					timeTransmitter?: string
+				}
 				if (body.ptpStatus) {
 					this.ptpStatus = body.ptpStatus
 					this.setVariableValues({ ptp_status: this.ptpStatus })
@@ -219,39 +330,73 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 			} else if (topic === '/Ptp/PtpStatusChanged') {
 				this.fetchPtpStatus()
 			} else if (topic === '/Ptp/FetchPtpSettingsResponse') {
-				const body = data.body as { domain?: number; hybridMode?: boolean; timeReceiverOnly?: boolean }
+				const body = data.body as {
+					domain?: number
+					hybridMode?: boolean
+					timeReceiverOnly?: boolean
+				}
 				if (body.domain !== undefined) {
 					this.ptpDomain = body.domain
 					this.setVariableValues({ ptp_domain: String(this.ptpDomain) })
 				}
 				if (body.hybridMode !== undefined) {
 					this.ptpHybridMode = body.hybridMode
-					this.setVariableValues({ ptp_hybrid_mode: this.ptpHybridMode ? 'Enabled' : 'Disabled' })
+					this.setVariableValues({
+						ptp_hybrid_mode: this.ptpHybridMode ? 'Enabled' : 'Disabled',
+					})
 				}
 				if (body.timeReceiverOnly !== undefined) {
 					this.ptpReceiverOnly = body.timeReceiverOnly
-					this.setVariableValues({ ptp_receiver_only: this.ptpReceiverOnly ? 'Yes' : 'No' })
+					this.setVariableValues({
+						ptp_receiver_only: this.ptpReceiverOnly ? 'Yes' : 'No',
+					})
 				}
 			} else if (topic === '/Ptp/UpdatePtpSettingsResponse') {
 				this.log('info', 'PTP settings updated successfully')
 				this.fetchPtpSettings()
 			} else if (topic === '/ControlPanelApp/FetchConfigResponse') {
-				const body = data.body as { enabled?: boolean }
+				const body = data.body as {
+					enabled?: boolean
+					controlPanelAppConfig?: { isEnabled?: boolean }
+				}
 				if (body.enabled !== undefined) {
 					this.controlPanelEnabled = body.enabled
-					this.setVariableValues({ control_panel_enabled: this.controlPanelEnabled ? 'Yes' : 'No' })
+					this.setVariableValues({
+						control_panel_enabled: this.controlPanelEnabled ? 'Yes' : 'No',
+					})
+					this.checkFeedbacks('controlPanelEnabled')
+					this.log('info', `Control panel enabled: ${this.controlPanelEnabled}`)
+				} else if (body.controlPanelAppConfig !== undefined && body.controlPanelAppConfig.isEnabled !== undefined) {
+					this.controlPanelEnabled = body.controlPanelAppConfig.isEnabled
+					this.setVariableValues({
+						control_panel_enabled: this.controlPanelEnabled ? 'Yes' : 'No',
+					})
 					this.checkFeedbacks('controlPanelEnabled')
 					this.log('info', `Control panel enabled: ${this.controlPanelEnabled}`)
 				}
 			} else if (topic === '/ControlPanelApp/ConfigChanged') {
 				this.fetchControlPanelConfig()
 			} else if (topic === '/Nmos/FetchStatusResponse') {
-				const body = data.body as { enabled?: boolean; status?: string }
+				const body = data.body as {
+					enabled?: boolean
+					status?: string
+					isEnabled?: boolean
+				}
 				if (body.enabled !== undefined) {
 					this.nmosEnabled = body.enabled
-					this.setVariableValues({ nmos_enabled: this.nmosEnabled ? 'Yes' : 'No' })
+					this.setVariableValues({
+						nmos_enabled: this.nmosEnabled ? 'Yes' : 'No',
+					})
+					this.checkFeedbacks('nmosEnabled')
+				} else if (body.isEnabled !== undefined) {
+					this.nmosEnabled = body.isEnabled
+					this.setVariableValues({
+						nmos_enabled: this.nmosEnabled ? 'Yes' : 'No',
+					})
 					this.checkFeedbacks('nmosEnabled')
 				}
+				// TODO(Peter): Is NMOS state the same as status?
+				// {"body":{"isEnabled":false,"state":"Undefined"},"topic":"/Nmos/FetchStatusResponse"}
 				if (body.status) {
 					this.nmosStatus = body.status
 					this.setVariableValues({ nmos_status: this.nmosStatus })
@@ -286,7 +431,39 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		}
 		const message = JSON.stringify({ topic, body })
 		this.ws.send(message)
-		this.log('debug', `Sent: ${topic}`)
+		// /Ping is sent every 30s; skip logging it to avoid debug-log noise.
+		if (topic !== '/Ping') {
+			this.log('debug', `Sent: ${topic}`)
+		}
+	}
+
+	// Keepalive: periodically send /Ping and watch for /PingResponse. If the panel
+	// stops responding we forcibly tear down the socket so the existing 'close'
+	// handler schedules a reconnect — this is what detects a silently dropped link.
+	private startPingTimer(): void {
+		this.stopPingTimer()
+		this.missedPongs = 0
+		this.pingTimer = setInterval(() => {
+			if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+				return
+			}
+			if (this.missedPongs >= MAX_MISSED_PONGS) {
+				this.log('warn', `No /PingResponse after ${this.missedPongs} pings, treating connection as dead`)
+				this.updateStatus(InstanceStatus.Disconnected, 'No response to ping')
+				this.ws.terminate()
+				return
+			}
+			this.missedPongs++
+			this.sendMessage('/Ping', {})
+		}, PING_INTERVAL_MS)
+	}
+
+	private stopPingTimer(): void {
+		if (this.pingTimer) {
+			clearInterval(this.pingTimer)
+			this.pingTimer = null
+		}
+		this.missedPongs = 0
 	}
 
 	// Network methods
@@ -296,7 +473,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		subnetMask: string,
 		gateway: string,
 		prefixLength: number,
-		dhcp: boolean
+		dhcp: boolean,
 	): Promise<void> {
 		if (!this.networkSettings) {
 			this.log('warn', 'Current network settings not available, fetching...')
@@ -318,7 +495,9 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		targetInterface.ipv4Settings.networkMaskConverted = subnetMask
 		targetInterface.ipv4Settings.defaultGateway = gateway
 		targetInterface.ipv4Settings.prefixLength = prefixLength
-		this.sendMessage('/NetworkSettings/UpdateNetworkSettings', { networkSettings: updatedSettings })
+		this.sendMessage('/NetworkSettings/UpdateNetworkSettings', {
+			networkSettings: updatedSettings,
+		})
 	}
 
 	public fetchNetworkStatus(interfaceId: string): void {
@@ -336,6 +515,14 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 
 	public fetchDeviceInfo(): void {
 		this.sendMessage('/DeviceInfo/FetchDeviceInfo', {})
+	}
+
+	public fetchDeviceSettings(): void {
+		this.sendMessage('/DeviceSettings/FetchDeviceSettings', {})
+	}
+
+	public fetchFirmwareVersion(): void {
+		this.sendMessage('/FirmwareUpdater/FetchFirmwareVersion', {})
 	}
 
 	// Health and Alarm methods
@@ -361,7 +548,11 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 	}
 
 	public updatePtpSettings(domain: number, hybridMode: boolean, timeReceiverOnly: boolean): void {
-		this.sendMessage('/Ptp/UpdatePtpSettings', { domain, hybridMode, timeReceiverOnly })
+		this.sendMessage('/Ptp/UpdatePtpSettings', {
+			domain,
+			hybridMode,
+			timeReceiverOnly,
+		})
 	}
 
 	// Control Panel methods
@@ -461,7 +652,10 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 	// then close. This lets one Companion connection flash any panel on the network by IP
 	// (e.g. from a custom variable) without needing a dedicated persistent connection - and
 	// therefore without live feedbacks/variables/status polling - for every physical panel.
-	private async runIdentifyOnRemote(host: string, run: (send: (topic: string) => void) => Promise<void>): Promise<void> {
+	private async runIdentifyOnRemote(
+		host: string,
+		run: (send: (topic: string) => void) => Promise<void>,
+	): Promise<void> {
 		if (!host) {
 			this.log('warn', 'Identify by IP: no host provided')
 			return

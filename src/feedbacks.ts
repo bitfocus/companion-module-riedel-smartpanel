@@ -66,7 +66,7 @@ export function getFeedbacks(instance: RiedelRSP1232HLInstance): CompanionFeedba
 				const interfaceId = feedback.options.interface as string
 				const ip = instance.getInterfaceIp(interfaceId)
 				const showName = feedback.options.showName as boolean
-				const text = showName ? `${interfaceId}\\n${ip || 'Unknown'}` : (ip || 'Unknown')
+				const text = showName ? `${interfaceId}\\n${ip || 'Unknown'}` : ip || 'Unknown'
 				return {
 					text: text,
 					color: feedback.options.color as number,
@@ -261,7 +261,8 @@ export function getFeedbacks(instance: RiedelRSP1232HLInstance): CompanionFeedba
 			],
 			callback: (feedback) => {
 				const count = instance.getAlarmCount()
-				const bgcolor = count > 0 ? (feedback.options.hasAlarmColor as number) : (feedback.options.noAlarmColor as number)
+				const bgcolor =
+					count > 0 ? (feedback.options.hasAlarmColor as number) : (feedback.options.noAlarmColor as number)
 				const text = (feedback.options.format as string).replace('{count}', String(count))
 				return {
 					text: text,

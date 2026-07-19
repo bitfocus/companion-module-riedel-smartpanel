@@ -124,6 +124,8 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 			options: [],
 			callback: async () => {
 				instance.fetchDeviceInfo()
+				instance.fetchDeviceSettings()
+				instance.fetchFirmwareVersion()
 			},
 		},
 
@@ -166,6 +168,8 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 				instance.fetchNetworkStatus('Media2')
 				instance.fetchNetworkSettings()
 				instance.fetchDeviceInfo()
+				instance.fetchDeviceSettings()
+				instance.fetchFirmwareVersion()
 			},
 		},
 
@@ -232,11 +236,7 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 				},
 			],
 			callback: async (action) => {
-				instance.updatePtpSettings(
-					action.options.domain as number,
-					instance.ptpHybridMode,
-					instance.ptpReceiverOnly
-				)
+				instance.updatePtpSettings(action.options.domain as number, instance.ptpHybridMode, instance.ptpReceiverOnly)
 			},
 		},
 
@@ -356,7 +356,8 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 		// Identify-by-IP Actions (target an arbitrary panel without a dedicated connection)
 		enableIdentifyAtIp: {
 			name: 'Enable Identify (Custom IP)',
-			description: 'Turn on identify LEDs on a panel at a specific IP - supports variables, no dedicated connection needed',
+			description:
+				'Turn on identify LEDs on a panel at a specific IP - supports variables, no dedicated connection needed',
 			options: [
 				{
 					type: 'textinput',
@@ -377,7 +378,8 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 		},
 		disableIdentifyAtIp: {
 			name: 'Disable Identify (Custom IP)',
-			description: 'Turn off identify LEDs on a panel at a specific IP - supports variables, no dedicated connection needed',
+			description:
+				'Turn off identify LEDs on a panel at a specific IP - supports variables, no dedicated connection needed',
 			options: [
 				{
 					type: 'textinput',

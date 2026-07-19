@@ -27,26 +27,26 @@ Bitfocus Companion module for controlling Riedel Smart Panels via WebSocket.
 
 ### Variables
 
-| Variable | Description |
-|----------|-------------|
-| `connection_status` | Current connection state |
-| `media1_ip` | Media1 interface IP address |
-| `config1_ip` | Config1 interface IP address |
-| `media2_ip` | Media2 interface IP address |
-| `device_name` | Device name |
-| `firmware_version` | Firmware version |
-| `mac_address` | MAC address |
-| `health_status` | Current health status |
-| `alarm_count` | Number of active alarms |
-| `ptp_status` | PTP synchronization status |
-| `ptp_master` | PTP time transmitter (master clock) |
-| `ptp_domain` | PTP domain |
-| `ptp_hybrid_mode` | PTP hybrid mode state |
-| `ptp_receiver_only` | PTP receiver-only mode state |
-| `control_panel_enabled` | Control Panel app state |
-| `nmos_enabled` | NMOS state |
-| `nmos_status` | NMOS status |
-| `identify_status` | Identify LED state (Active/Inactive) |
+| Variable                | Description                          |
+| ----------------------- | ------------------------------------ |
+| `connection_status`     | Current connection state             |
+| `media1_ip`             | Media1 interface IP address          |
+| `config1_ip`            | Config1 interface IP address         |
+| `media2_ip`             | Media2 interface IP address          |
+| `device_name`           | Device name                          |
+| `firmware_version`      | Firmware version                     |
+| `mac_address`           | MAC address                          |
+| `health_status`         | Current health status                |
+| `alarm_count`           | Number of active alarms              |
+| `ptp_status`            | PTP synchronization status           |
+| `ptp_master`            | PTP time transmitter (master clock)  |
+| `ptp_domain`            | PTP domain                           |
+| `ptp_hybrid_mode`       | PTP hybrid mode state                |
+| `ptp_receiver_only`     | PTP receiver-only mode state         |
+| `control_panel_enabled` | Control Panel app state              |
+| `nmos_enabled`          | NMOS state                           |
+| `nmos_status`           | NMOS status                          |
+| `identify_status`       | Identify LED state (Active/Inactive) |
 
 ### Presets
 
@@ -65,10 +65,10 @@ Bitfocus Companion module for controlling Riedel Smart Panels via WebSocket.
 
 ## Configuration
 
-| Setting | Description | Default |
-|---------|-------------|---------|
-| Panel IP Address | IP address of the Smart Panel | - |
-| WebSocket Port | WebSocket port (usually 80) | 80 |
+| Setting          | Description                   | Default |
+| ---------------- | ----------------------------- | ------- |
+| Panel IP Address | IP address of the Smart Panel | -       |
+| WebSocket Port   | WebSocket port (usually 80)   | 80      |
 
 ## Network Interfaces
 
@@ -149,35 +149,37 @@ This module communicates with the Smart Panel via WebSocket at `ws://<host>:<por
 
 ```json
 {
-  "topic": "/Path/To/Endpoint",
-  "body": {}
+	"topic": "/Path/To/Endpoint",
+	"body": {}
 }
 ```
 
 ### Supported Topics
 
-| Topic | Description |
-|-------|-------------|
-| `/NetworkStatus/FetchNetworkStatus` | Get network interface status |
-| `/NetworkSettings/FetchNetworkSettings` | Get network settings |
-| `/NetworkSettings/UpdateNetworkSettings` | Update network settings |
-| `/DeviceInfo/FetchDeviceInfo` | Get device information |
-| `/Reboot/RebootDevice` | Reboot the device |
-| `/StatusInfo/FetchHealthStatus` | Get health status |
-| `/StatusInfo/FetchAlarmList` | Get active alarms |
-| `/StatusInfo/FetchAlarmHistory` | Get alarm history |
-| `/Ptp/FetchPtpStatus` | Get PTP status |
-| `/Ptp/FetchPtpSettings` | Get PTP settings |
-| `/Ptp/UpdatePtpSettings` | Update PTP settings |
-| `/ControlPanelApp/FetchConfig` | Get Control Panel state |
-| `/ControlPanelApp/Enable` | Enable Control Panel |
-| `/ControlPanelApp/Disable` | Disable Control Panel |
-| `/Nmos/FetchStatus` | Get NMOS status |
-| `/Nmos/Enable` | Enable NMOS |
-| `/Nmos/Disable` | Disable NMOS |
-| `/Identify/FetchStatus` | Get identify LED state |
-| `/Identify/Enable` | Turn on identify LEDs |
-| `/Identify/Disable` | Turn off identify LEDs |
+| Topic                                    | Description                  |
+| ---------------------------------------- | ---------------------------- |
+| `/NetworkStatus/FetchNetworkStatus`      | Get network interface status |
+| `/NetworkSettings/FetchNetworkSettings`  | Get network settings         |
+| `/NetworkSettings/UpdateNetworkSettings` | Update network settings      |
+| `/DeviceInfo/FetchDeviceInfo`            | Get device information       |
+| `/DeviceSettings/FetchDeviceSettings`    | Get device settings          |
+| `/FirmwareUpdater/FetchFirmwareVersion`  | Get firmware information     |
+| `/Reboot/RebootDevice`                   | Reboot the device            |
+| `/StatusInfo/FetchHealthStatus`          | Get health status            |
+| `/StatusInfo/FetchAlarmList`             | Get active alarms            |
+| `/StatusInfo/FetchAlarmHistory`          | Get alarm history            |
+| `/Ptp/FetchPtpStatus`                    | Get PTP status               |
+| `/Ptp/FetchPtpSettings`                  | Get PTP settings             |
+| `/Ptp/UpdatePtpSettings`                 | Update PTP settings          |
+| `/ControlPanelApp/FetchConfig`           | Get Control Panel state      |
+| `/ControlPanelApp/Enable`                | Enable Control Panel         |
+| `/ControlPanelApp/Disable`               | Disable Control Panel        |
+| `/Nmos/FetchStatus`                      | Get NMOS status              |
+| `/Nmos/Enable`                           | Enable NMOS                  |
+| `/Nmos/Disable`                          | Disable NMOS                 |
+| `/Identify/FetchStatus`                  | Get identify LED state       |
+| `/Identify/Enable`                       | Turn on identify LEDs        |
+| `/Identify/Disable`                      | Turn off identify LEDs       |
 
 `/Identify` has no built-in flash-count or duration parameter - it's a bare on/off latch,
 and each `Enable`/`Disable` message is itself one visible flash of the panel's key LEDs

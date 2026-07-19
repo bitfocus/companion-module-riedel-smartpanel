@@ -153,7 +153,12 @@ export function getPresets(): CompanionPresetDefinitions {
 			color: WHITE,
 			bgcolor: BLACK,
 		},
-		steps: [{ down: [{ actionId: 'fetchNetworkStatus', options: { interface: 'Media1' } }], up: [] }],
+		steps: [
+			{
+				down: [{ actionId: 'fetchNetworkStatus', options: { interface: 'Media1' } }],
+				up: [],
+			},
+		],
 		feedbacks: [
 			{
 				feedbackId: 'interfaceIp',
@@ -177,7 +182,12 @@ export function getPresets(): CompanionPresetDefinitions {
 			color: WHITE,
 			bgcolor: BLACK,
 		},
-		steps: [{ down: [{ actionId: 'fetchNetworkStatus', options: { interface: 'Config1' } }], up: [] }],
+		steps: [
+			{
+				down: [{ actionId: 'fetchNetworkStatus', options: { interface: 'Config1' } }],
+				up: [],
+			},
+		],
 		feedbacks: [
 			{
 				feedbackId: 'interfaceIp',
@@ -201,7 +211,12 @@ export function getPresets(): CompanionPresetDefinitions {
 			color: WHITE,
 			bgcolor: BLACK,
 		},
-		steps: [{ down: [{ actionId: 'fetchNetworkStatus', options: { interface: 'Media2' } }], up: [] }],
+		steps: [
+			{
+				down: [{ actionId: 'fetchNetworkStatus', options: { interface: 'Media2' } }],
+				up: [],
+			},
+		],
 		feedbacks: [
 			{
 				feedbackId: 'interfaceIp',
@@ -535,7 +550,12 @@ export function getPresets(): CompanionPresetDefinitions {
 				color: WHITE,
 				bgcolor: DARK_BLUE,
 			},
-			steps: [{ down: [{ actionId: 'setPtpDomain', options: { domain: domain } }], up: [] }],
+			steps: [
+				{
+					down: [{ actionId: 'setPtpDomain', options: { domain: domain } }],
+					up: [],
+				},
+			],
 			feedbacks: [],
 		}
 	}
