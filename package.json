@@ -1,6 +1,6 @@
 {
 	"name": "companion-module-riedel-smartpanel",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"description": "Bitfocus Companion module for Riedel Smart Panel",
 	"main": "dist/main.js",
 	"type": "module",

@@ -17,6 +17,7 @@ export declare class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> 
     controlPanelEnabled: boolean;
     nmosEnabled: boolean;
     private nmosStatus;
+    identifyEnabled: boolean;
     constructor(internal: unknown);
     init(config: DeviceConfig): Promise<void>;
     destroy(): Promise<void>;
@@ -44,6 +45,15 @@ export declare class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> 
     enableNmos(): void;
     disableNmos(): void;
     toggleNmos(): void;
+    fetchIdentifyStatus(): void;
+    enableIdentify(): void;
+    disableIdentify(): void;
+    toggleIdentify(): void;
+    flashIdentify(count: number, intervalMs: number): Promise<void>;
+    private runIdentifyOnRemote;
+    enableIdentifyAtIp(host: string): Promise<void>;
+    disableIdentifyAtIp(host: string): Promise<void>;
+    flashIdentifyAtIp(host: string, count: number, intervalMs: number): Promise<void>;
     isConnected(): boolean;
     getInterfaceIp(interfaceId: string): string | undefined;
     getHealthStatus(): string;
@@ -51,5 +61,6 @@ export declare class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> 
     getPtpStatus(): string;
     getControlPanelEnabled(): boolean;
     getNmosEnabled(): boolean;
+    getIdentifyEnabled(): boolean;
 }
 //# sourceMappingURL=main.d.ts.map

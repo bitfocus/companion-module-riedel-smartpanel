@@ -12,6 +12,8 @@ Bitfocus Companion module for controlling Riedel Smart Panels via WebSocket.
 - **PTP (Precision Time Protocol)**: View and configure PTP settings (domain, hybrid mode, receiver-only mode)
 - **Control Panel**: Enable/disable/toggle the Control Panel Application (intercom functionality)
 - **NMOS**: Enable/disable/toggle NMOS functionality
+- **Identify**: Enable/disable/toggle the panel's identify LEDs, or flash them a specific number of times (locate the physical panel)
+- **Identify (Custom IP)**: Same enable/disable/flash actions, but targeting an IP given per action call (supports Companion variables) instead of this connection's configured panel - see [Targeting Multiple Panels](#targeting-multiple-panels-without-a-dedicated-connection) below
 
 ### Feedbacks
 
@@ -21,6 +23,7 @@ Bitfocus Companion module for controlling Riedel Smart Panels via WebSocket.
 - **PTP Status**: PTP synchronization status (Locked/Unlocked)
 - **Control Panel Enabled**: Shows if Control Panel app is active
 - **NMOS Enabled**: Shows if NMOS is active
+- **Identify Enabled**: Shows if the panel's identify LEDs are active
 
 ### Variables
 
@@ -43,10 +46,11 @@ Bitfocus Companion module for controlling Riedel Smart Panels via WebSocket.
 | `control_panel_enabled` | Control Panel app state |
 | `nmos_enabled` | NMOS state |
 | `nmos_status` | NMOS status |
+| `identify_status` | Identify LED state (Active/Inactive) |
 
 ### Presets
 
-38 pre-configured button presets across 9 categories:
+42 pre-configured button presets across 10 categories:
 
 - **Status Display**: Connection, health, alarms, PTP status
 - **Network Status**: Interface IP addresses
@@ -56,6 +60,7 @@ Bitfocus Companion module for controlling Riedel Smart Panels via WebSocket.
 - **NMOS**: Enable/disable/toggle buttons
 - **PTP**: Refresh and domain selection (0-7)
 - **Device Control**: Reboot button
+- **Identify**: Status/toggle, enable, disable, and a "Flash x2" button
 - **Alert Indicators**: Health errors, active alarms, PTP unlocked, disconnected alerts
 
 ## Configuration
@@ -72,6 +77,35 @@ The Smart Panel has three network interfaces:
 - **Media1**: Primary media network interface
 - **Config1**: Configuration interface
 - **Media2**: Secondary media interface
+
+## Targeting Multiple Panels Without a Dedicated Connection
+
+Every action in this module except the `*IdentifyAtIp` ones runs against the single panel
+configured on the Companion connection (`Panel IP Address` in the connection's config) over
+a persistent WebSocket - that's what keeps feedbacks, variables, and health/PTP/alarm polling
+live for that one device. If you have many panels and only want live status for a few of them,
+adding one Companion connection per panel is the correct, intended way to get that (it's how
+Companion is designed to model "one device, one connection").
+
+For a narrower case - flashing/locating an arbitrary panel's identify LEDs without wanting a
+dedicated persistent connection, live feedbacks, or status polling for every single panel on the
+network - use `Enable Identify (Custom IP)`, `Disable Identify (Custom IP)`, or
+`Flash Identify (Custom IP)`. These take the target IP as a per-action option instead of the
+connection's configured host, so **one Companion connection can flash any panel by IP**. Each
+call opens a short-lived WebSocket directly to that IP, sends the identify command(s), and
+closes it - it does not touch or depend on the connection's main WebSocket.
+
+The IP field supports Companion variable syntax, so it can be driven dynamically, e.g. from a
+custom variable set elsewhere in your Companion configuration:
+
+```
+$(internal:custom_target_panel_ip)
+```
+
+Trade-off: because there's no persistent connection to an arbitrary IP, there are no live
+feedbacks/variables for it - the module can't show you that panel's health, PTP lock, or
+connection state without its own dedicated connection. `*IdentifyAtIp` is fire-and-forget by
+design.
 
 ## Development
 
@@ -141,6 +175,15 @@ This module communicates with the Smart Panel via WebSocket at `ws://<host>:<por
 | `/Nmos/FetchStatus` | Get NMOS status |
 | `/Nmos/Enable` | Enable NMOS |
 | `/Nmos/Disable` | Disable NMOS |
+| `/Identify/FetchStatus` | Get identify LED state |
+| `/Identify/Enable` | Turn on identify LEDs |
+| `/Identify/Disable` | Turn off identify LEDs |
+
+`/Identify` has no built-in flash-count or duration parameter - it's a bare on/off latch,
+and each `Enable`/`Disable` message is itself one visible flash of the panel's key LEDs
+(sending `Enable` does not start a sustained blink that `Disable` then stops). The
+`flashIdentify` action reproduces a specific flash count by alternating the latch with a
+configurable interval between edges.
 
 ## Compatibility
 

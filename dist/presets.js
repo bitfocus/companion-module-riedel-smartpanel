@@ -615,6 +615,94 @@ export function getPresets() {
             },
         ],
     };
+    // ==================== IDENTIFY PRESETS ====================
+    presets['identify_status'] = {
+        type: 'button',
+        category: 'Identify',
+        name: 'Identify Status',
+        style: {
+            text: 'Identify',
+            size: '14',
+            color: WHITE,
+            bgcolor: GREY,
+        },
+        steps: [{ down: [{ actionId: 'toggleIdentify', options: {} }], up: [] }],
+        feedbacks: [
+            {
+                feedbackId: 'identifyEnabled',
+                options: { state: 'enabled' },
+                style: {
+                    bgcolor: YELLOW,
+                    color: BLACK,
+                    text: 'Identify\\nON',
+                },
+            },
+            {
+                feedbackId: 'identifyEnabled',
+                options: { state: 'disabled' },
+                style: {
+                    bgcolor: GREY,
+                    text: 'Identify\\nOFF',
+                },
+            },
+        ],
+    };
+    presets['identify_flash_2'] = {
+        type: 'button',
+        category: 'Identify',
+        name: 'Flash Identify x2',
+        style: {
+            text: 'FLASH\\nx2',
+            size: '14',
+            color: WHITE,
+            bgcolor: DARK_BLUE,
+        },
+        steps: [{ down: [{ actionId: 'flashIdentify', options: { count: 2, intervalMs: 400 } }], up: [] }],
+        feedbacks: [],
+    };
+    presets['identify_enable'] = {
+        type: 'button',
+        category: 'Identify',
+        name: 'Enable Identify',
+        style: {
+            text: 'ENABLE\\nIDENTIFY',
+            size: '14',
+            color: WHITE,
+            bgcolor: DARK_GREEN,
+        },
+        steps: [{ down: [{ actionId: 'enableIdentify', options: {} }], up: [] }],
+        feedbacks: [
+            {
+                feedbackId: 'identifyEnabled',
+                options: { state: 'enabled' },
+                style: {
+                    bgcolor: YELLOW,
+                    color: BLACK,
+                },
+            },
+        ],
+    };
+    presets['identify_disable'] = {
+        type: 'button',
+        category: 'Identify',
+        name: 'Disable Identify',
+        style: {
+            text: 'DISABLE\\nIDENTIFY',
+            size: '14',
+            color: WHITE,
+            bgcolor: DARK_RED,
+        },
+        steps: [{ down: [{ actionId: 'disableIdentify', options: {} }], up: [] }],
+        feedbacks: [
+            {
+                feedbackId: 'identifyEnabled',
+                options: { state: 'disabled' },
+                style: {
+                    bgcolor: RED,
+                },
+            },
+        ],
+    };
     return presets;
 }
 //# sourceMappingURL=presets.js.map

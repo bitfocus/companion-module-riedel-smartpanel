@@ -22,6 +22,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase {
     controlPanelEnabled = false;
     nmosEnabled = false;
     nmosStatus = 'Unknown';
+    identifyEnabled = false;
     constructor(internal) {
         super(internal);
     }
@@ -82,6 +83,7 @@ export class RiedelRSP1232HLInstance extends InstanceBase {
                 // Fetch control panel and NMOS status
                 this.fetchControlPanelConfig();
                 this.fetchNmosStatus();
+                this.fetchIdentifyStatus();
             });
             this.ws.on('message', (data) => {
                 this.handleMessage(data.toString());
@@ -249,6 +251,22 @@ export class RiedelRSP1232HLInstance extends InstanceBase {
             else if (topic === '/Nmos/StatusChanged') {
                 this.fetchNmosStatus();
             }
+            else if (topic === '/Identify/FetchStatusResponse') {
+                const body = data.body;
+                if (body.isEnabled !== undefined) {
+                    this.identifyEnabled = body.isEnabled;
+                    this.setVariableValues({ identify_status: this.identifyEnabled ? 'Active' : 'Inactive' });
+                    this.checkFeedbacks('identifyEnabled');
+                }
+            }
+            else if (topic === '/Identify/StatusChanged') {
+                const body = data.body;
+                if (body.isEnabled !== undefined) {
+                    this.identifyEnabled = body.isEnabled;
+                    this.setVariableValues({ identify_status: this.identifyEnabled ? 'Active' : 'Inactive' });
+                    this.checkFeedbacks('identifyEnabled');
+                }
+            }
         }
         catch (error) {
             this.log('error', `Failed to parse message: ${error}`);
@@ -360,6 +378,109 @@ export class RiedelRSP1232HLInstance extends InstanceBase {
             this.enableNmos();
         }
     }
+    // Identify methods
+    // Note: the panel has no built-in "flash count" parameter - /Identify only exposes
+    // a bare on/off latch. Empirically, each Enable/Disable message is itself one visible
+    // flash of the panel's key LEDs (it is not "Enable starts blinking, Disable stops it").
+    // flashIdentify() below reproduces a specific flash count by alternating the latch.
+    fetchIdentifyStatus() {
+        this.sendMessage('/Identify/FetchStatus', {});
+    }
+    enableIdentify() {
+        this.sendMessage('/Identify/Enable', {});
+        this.identifyEnabled = true;
+        this.setVariableValues({ identify_status: 'Active' });
+        this.checkFeedbacks('identifyEnabled');
+    }
+    disableIdentify() {
+        this.sendMessage('/Identify/Disable', {});
+        this.identifyEnabled = false;
+        this.setVariableValues({ identify_status: 'Inactive' });
+        this.checkFeedbacks('identifyEnabled');
+    }
+    toggleIdentify() {
+        if (this.identifyEnabled) {
+            this.disableIdentify();
+        }
+        else {
+            this.enableIdentify();
+        }
+    }
+    async flashIdentify(count, intervalMs) {
+        if (count < 1)
+            return;
+        let state = this.identifyEnabled;
+        for (let i = 0; i < count; i++) {
+            state = !state;
+            this.sendMessage(state ? '/Identify/Enable' : '/Identify/Disable', {});
+            this.identifyEnabled = state;
+            if (i < count - 1) {
+                await new Promise((resolve) => setTimeout(resolve, intervalMs));
+            }
+        }
+        this.setVariableValues({ identify_status: this.identifyEnabled ? 'Active' : 'Inactive' });
+        this.checkFeedbacks('identifyEnabled');
+    }
+    // Identify-by-IP methods
+    // Open a short-lived WebSocket directly to an arbitrary panel, send identify command(s),
+    // then close. This lets one Companion connection flash any panel on the network by IP
+    // (e.g. from a custom variable) without needing a dedicated persistent connection - and
+    // therefore without live feedbacks/variables/status polling - for every physical panel.
+    async runIdentifyOnRemote(host, run) {
+        if (!host) {
+            this.log('warn', 'Identify by IP: no host provided');
+            return;
+        }
+        const url = `ws://${host}:${this.config.port}/websocket`;
+        const socket = new WebSocket(url);
+        try {
+            await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => reject(new Error('connection timeout')), 5000);
+                socket.once('open', () => {
+                    clearTimeout(timeout);
+                    resolve();
+                });
+                socket.once('error', (error) => {
+                    clearTimeout(timeout);
+                    reject(error);
+                });
+            });
+            const send = (topic) => socket.send(JSON.stringify({ topic, body: {} }));
+            await run(send);
+            // give the last frame a moment to flush before closing the socket
+            await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+        catch (error) {
+            this.log('error', `Identify command to ${host} failed: ${error}`);
+        }
+        finally {
+            socket.close();
+        }
+    }
+    async enableIdentifyAtIp(host) {
+        await this.runIdentifyOnRemote(host, async (send) => {
+            send('/Identify/Enable');
+        });
+    }
+    async disableIdentifyAtIp(host) {
+        await this.runIdentifyOnRemote(host, async (send) => {
+            send('/Identify/Disable');
+        });
+    }
+    async flashIdentifyAtIp(host, count, intervalMs) {
+        if (count < 1)
+            return;
+        await this.runIdentifyOnRemote(host, async (send) => {
+            let state = false;
+            for (let i = 0; i < count; i++) {
+                state = !state;
+                send(state ? '/Identify/Enable' : '/Identify/Disable');
+                if (i < count - 1) {
+                    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+                }
+            }
+        });
+    }
     // Getter methods for feedbacks
     isConnected() {
         return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
@@ -381,6 +502,9 @@ export class RiedelRSP1232HLInstance extends InstanceBase {
     }
     getNmosEnabled() {
         return this.nmosEnabled;
+    }
+    getIdentifyEnabled() {
+        return this.identifyEnabled;
     }
 }
 runEntrypoint(RiedelRSP1232HLInstance, []);

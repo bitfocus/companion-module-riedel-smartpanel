@@ -288,6 +288,140 @@ export function getActions(instance) {
                 instance.fetchNmosStatus();
             },
         },
+        // Identify Actions
+        enableIdentify: {
+            name: 'Enable Identify',
+            description: 'Turn on the panel identify LEDs (locate the physical panel)',
+            options: [],
+            callback: async () => {
+                instance.enableIdentify();
+            },
+        },
+        disableIdentify: {
+            name: 'Disable Identify',
+            description: 'Turn off the panel identify LEDs',
+            options: [],
+            callback: async () => {
+                instance.disableIdentify();
+            },
+        },
+        toggleIdentify: {
+            name: 'Toggle Identify',
+            description: 'Toggle the panel identify LEDs on/off',
+            options: [],
+            callback: async () => {
+                instance.toggleIdentify();
+            },
+        },
+        flashIdentify: {
+            name: 'Flash Identify',
+            description: 'Flash the panel identify LEDs a specific number of times',
+            options: [
+                {
+                    type: 'number',
+                    label: 'Number of Flashes',
+                    id: 'count',
+                    default: 2,
+                    min: 1,
+                    max: 20,
+                },
+                {
+                    type: 'number',
+                    label: 'Interval Between Flashes (ms)',
+                    id: 'intervalMs',
+                    default: 400,
+                    min: 50,
+                    max: 5000,
+                },
+            ],
+            callback: async (action) => {
+                const count = action.options.count;
+                const intervalMs = action.options.intervalMs;
+                await instance.flashIdentify(count, intervalMs);
+            },
+        },
+        // Identify-by-IP Actions (target an arbitrary panel without a dedicated connection)
+        enableIdentifyAtIp: {
+            name: 'Enable Identify (Custom IP)',
+            description: 'Turn on identify LEDs on a panel at a specific IP - supports variables, no dedicated connection needed',
+            options: [
+                {
+                    type: 'textinput',
+                    label: 'Panel IP Address',
+                    id: 'ip',
+                    default: '',
+                    useVariables: true,
+                },
+            ],
+            callback: async (action) => {
+                const ip = action.options.ip;
+                if (!ip) {
+                    instance.log('warn', 'Enable Identify (Custom IP): no IP address provided');
+                    return;
+                }
+                await instance.enableIdentifyAtIp(ip);
+            },
+        },
+        disableIdentifyAtIp: {
+            name: 'Disable Identify (Custom IP)',
+            description: 'Turn off identify LEDs on a panel at a specific IP - supports variables, no dedicated connection needed',
+            options: [
+                {
+                    type: 'textinput',
+                    label: 'Panel IP Address',
+                    id: 'ip',
+                    default: '',
+                    useVariables: true,
+                },
+            ],
+            callback: async (action) => {
+                const ip = action.options.ip;
+                if (!ip) {
+                    instance.log('warn', 'Disable Identify (Custom IP): no IP address provided');
+                    return;
+                }
+                await instance.disableIdentifyAtIp(ip);
+            },
+        },
+        flashIdentifyAtIp: {
+            name: 'Flash Identify (Custom IP)',
+            description: 'Flash identify LEDs a specific number of times on a panel at a specific IP - supports variables, no dedicated connection needed',
+            options: [
+                {
+                    type: 'textinput',
+                    label: 'Panel IP Address',
+                    id: 'ip',
+                    default: '',
+                    useVariables: true,
+                },
+                {
+                    type: 'number',
+                    label: 'Number of Flashes',
+                    id: 'count',
+                    default: 2,
+                    min: 1,
+                    max: 20,
+                },
+                {
+                    type: 'number',
+                    label: 'Interval Between Flashes (ms)',
+                    id: 'intervalMs',
+                    default: 400,
+                    min: 50,
+                    max: 5000,
+                },
+            ],
+            callback: async (action) => {
+                const ip = action.options.ip;
+                if (!ip) {
+                    instance.log('warn', 'Flash Identify (Custom IP): no IP address provided');
+                    return;
+                }
+                const count = action.options.count;
+                const intervalMs = action.options.intervalMs;
+                await instance.flashIdentifyAtIp(ip, count, intervalMs);
+            },
+        },
     };
 }
 //# sourceMappingURL=actions.js.map

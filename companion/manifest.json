@@ -3,7 +3,7 @@
 	"name": "Riedel Smart Panel",
 	"shortname": "smartpanel",
 	"description": "Control Riedel Smart Panel via WebSocket",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"license": "MIT",
 	"repository": "https://github.com/bitfocus/companion-module-riedel-smartpanel",
 	"bugs": "https://github.com/bitfocus/companion-module-riedel-smartpanel/issues",

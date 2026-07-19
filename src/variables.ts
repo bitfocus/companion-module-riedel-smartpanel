@@ -70,6 +70,10 @@ export function getVariableDefinitions(): CompanionVariableDefinition[] {
 			name: 'NMOS Status',
 			variableId: 'nmos_status',
 		},
+		{
+			name: 'Identify Status',
+			variableId: 'identify_status',
+		},
 	]
 }
 
@@ -92,5 +96,6 @@ export function getDefaultVariableValues(): CompanionVariableValues {
 		control_panel_enabled: 'Unknown',
 		nmos_enabled: 'Unknown',
 		nmos_status: 'Unknown',
+		identify_status: 'Unknown',
 	}
 }
