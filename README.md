@@ -61,6 +61,7 @@ Bitfocus Companion module for controlling Riedel Smart Panels via WebSocket.
 - **PTP**: Refresh and domain selection (0-7)
 - **Device Control**: Reboot button
 - **Identify**: Status/toggle, enable, disable, and a "Flash x2" button
+- **Key Control**: Toggle mute on keys (1–32) for Master and Expansion panels
 - **Alert Indicators**: Health errors, active alarms, PTP unlocked, disconnected alerts
 
 ## Configuration
@@ -77,6 +78,8 @@ The Smart Panel has three network interfaces:
 - **Media1**: Primary media network interface
 - **Config1**: Configuration interface
 - **Media2**: Secondary media interface
+
+See also [companion/HELP.md](./companion/HELP.md) for full action and feedback details.
 
 ## Targeting Multiple Panels Without a Dedicated Connection
 
@@ -156,36 +159,70 @@ This module communicates with the Smart Panel via WebSocket at `ws://<host>:<por
 
 ### Supported Topics
 
-| Topic                                    | Description                  |
+<<<<<<< HEAD
+| Topic | Description |
 | ---------------------------------------- | ---------------------------- |
-| `/NetworkStatus/FetchNetworkStatus`      | Get network interface status |
-| `/NetworkSettings/FetchNetworkSettings`  | Get network settings         |
-| `/NetworkSettings/UpdateNetworkSettings` | Update network settings      |
-| `/DeviceInfo/FetchDeviceInfo`            | Get device information       |
-| `/DeviceSettings/FetchDeviceSettings`    | Get device settings          |
-| `/FirmwareUpdater/FetchFirmwareVersion`  | Get firmware information     |
-| `/Reboot/RebootDevice`                   | Reboot the device            |
-| `/StatusInfo/FetchHealthStatus`          | Get health status            |
-| `/StatusInfo/FetchAlarmList`             | Get active alarms            |
-| `/StatusInfo/FetchAlarmHistory`          | Get alarm history            |
-| `/Ptp/FetchPtpStatus`                    | Get PTP status               |
-| `/Ptp/FetchPtpSettings`                  | Get PTP settings             |
-| `/Ptp/UpdatePtpSettings`                 | Update PTP settings          |
-| `/ControlPanelApp/FetchConfig`           | Get Control Panel state      |
-| `/ControlPanelApp/Enable`                | Enable Control Panel         |
-| `/ControlPanelApp/Disable`               | Disable Control Panel        |
-| `/Nmos/FetchStatus`                      | Get NMOS status              |
-| `/Nmos/Enable`                           | Enable NMOS                  |
-| `/Nmos/Disable`                          | Disable NMOS                 |
-| `/Identify/FetchStatus`                  | Get identify LED state       |
-| `/Identify/Enable`                       | Turn on identify LEDs        |
-| `/Identify/Disable`                      | Turn off identify LEDs       |
+| `/NetworkStatus/FetchNetworkStatus` | Get network interface status |
+| `/NetworkSettings/FetchNetworkSettings` | Get network settings |
+| `/NetworkSettings/UpdateNetworkSettings` | Update network settings |
+| `/DeviceInfo/FetchDeviceInfo` | Get device information |
+| `/DeviceSettings/FetchDeviceSettings` | Get device settings |
+| `/FirmwareUpdater/FetchFirmwareVersion` | Get firmware information |
+| `/Reboot/RebootDevice` | Reboot the device |
+| `/StatusInfo/FetchHealthStatus` | Get health status |
+| `/StatusInfo/FetchAlarmList` | Get active alarms |
+| `/StatusInfo/FetchAlarmHistory` | Get alarm history |
+| `/Ptp/FetchPtpStatus` | Get PTP status |
+| `/Ptp/FetchPtpSettings` | Get PTP settings |
+| `/Ptp/UpdatePtpSettings` | Update PTP settings |
+| `/ControlPanelApp/FetchConfig` | Get Control Panel state |
+| `/ControlPanelApp/Enable` | Enable Control Panel |
+| `/ControlPanelApp/Disable` | Disable Control Panel |
+| `/Nmos/FetchStatus` | Get NMOS status |
+| `/Nmos/Enable` | Enable NMOS |
+| `/Nmos/Disable` | Disable NMOS |
+| `/Identify/FetchStatus` | Get identify LED state |
+| `/Identify/Enable` | Turn on identify LEDs |
+| `/Identify/Disable` | Turn off identify LEDs |
 
 `/Identify` has no built-in flash-count or duration parameter - it's a bare on/off latch,
 and each `Enable`/`Disable` message is itself one visible flash of the panel's key LEDs
 (sending `Enable` does not start a sustained blink that `Disable` then stops). The
 `flashIdentify` action reproduces a specific flash count by alternating the latch with a
 configurable interval between edges.
+=======
+The list of topics the module will send via WebSocket, this doesn't cover the different Response and Changed reply topics that are supported too.
+
+| Topic                                           | Description                                             |
+| ----------------------------------------------- | ------------------------------------------------------- |
+| `/NetworkStatus/FetchNetworkStatus`             | Get network interface status                            |
+| `/NetworkStatus/FetchNetworkLinkStatus`         | Get network link status                                 |
+| `/NetworkSettings/FetchNetworkSettings`         | Get network settings                                    |
+| `/NetworkSettings/UpdateNetworkSettings`        | Update network settings                                 |
+| `/MediaPortAssignment/FetchMediaPortAssignment` | Get media port assignment (physical network interfaces) |
+| `/DeviceInfo/FetchDeviceInfo`                   | Get device information                                  |
+| `/DeviceSettings/FetchDeviceSettings`           | Get device settings                                     |
+| `/FirmwareUpdater/FetchFirmwareVersion`         | Get firmware information                                |
+| `/Reboot/RebootDevice`                          | Reboot the device                                       |
+| `/Identify/FetchStatus`                         | Get device identify status                              |
+| `/Identify/Enable`                              | Enable device identify                                  |
+| `/Identify/Disable`                             | Disable device identify                                 |
+| `/StatusInfo/FetchHealthStatus`                 | Get health status                                       |
+| `/StatusInfo/FetchAlarmList`                    | Get active alarms                                       |
+| `/StatusInfo/FetchAlarmHistory`                 | Get alarm history                                       |
+| `/Intercom/FetchArtistName`                     | Get Artist intercom name                                |
+| `/Intercom/FetchArtistConnectionStatus`         | Get Artist intercom connection status                   |
+| `/Ptp/FetchPtpStatus`                           | Get PTP status                                          |
+| `/Ptp/FetchPtpSettings`                         | Get PTP settings                                        |
+| `/Ptp/UpdatePtpSettings`                        | Update PTP settings                                     |
+| `/ControlPanelApp/FetchConfig`                  | Get Control Panel state                                 |
+| `/ControlPanelApp/Enable`                       | Enable Control Panel                                    |
+| `/ControlPanelApp/Disable`                      | Disable Control Panel                                   |
+| `/Nmos/FetchStatus`                             | Get NMOS status                                         |
+| `/Nmos/Enable`                                  | Enable NMOS                                             |
+| `/Nmos/Disable`                                 | Disable NMOS                                            |
+
+> > > > > > > pr-15
 
 ## Compatibility
 
@@ -194,7 +231,7 @@ configurable interval between edges.
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT License - see [LICENSE](./LICENSE) file for details.
 
 ## Support
 
