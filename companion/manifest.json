@@ -24,9 +24,15 @@
 	"products": ["Smart Panel"],
 	"keywords": ["intercom", "broadcast", "audio", "communications", "ptp", "nmos"],
 	"bonjourQueries": {
-		"bonjour_host": {
-			"type": "riedel",
-			"protocol": "tcp"
-		}
+		"bonjour_host": [
+			{
+				"type": "riedel",
+				"protocol": "tcp"
+			},
+			{
+				"type": "nmos-node",
+				"protocol": "tcp"
+			}
+		]
 	}
 }
