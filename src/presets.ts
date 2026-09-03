@@ -771,5 +771,36 @@ export function getPresets(): CompanionPresetDefinitions {
 		],
 	}
 
+	// ==================== KEY MUTE PRESETS ====================
+	for (let key = 1; key <= 8; key++) {
+		presets[`key_mute_${key}`] = {
+			type: 'button',
+			category: 'Key Control',
+			name: `Toggle Mute Key ${key}`,
+			style: {
+				text: `MUTE\\nKEY ${key}`,
+				size: '14',
+				color: WHITE,
+				bgcolor: DARK_BLUE,
+			},
+			steps: [
+				{
+					down: [
+						{
+							actionId: 'toggleKeyMute',
+							options: {
+								panelId: 0,
+								keyNumber: String(key),
+								durationMs: 250,
+							},
+						},
+					],
+					up: [],
+				},
+			],
+			feedbacks: [],
+		}
+	}
+
 	return presets
 }

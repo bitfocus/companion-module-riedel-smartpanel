@@ -32,6 +32,14 @@ This module requires the panel to be running firmware version 2.0.0 or later. Ea
 - **Fetch Device Info**: Get device information
 - **Fetch Network Status**: Get current network status
 
+### Key Control & Mute
+
+- **Toggle Mute on Key**: Simulates a rotary encoder push on a key to toggle mute on the connected panel or expansion panels.
+  - **Panel**: Target Master Panel (Panel 0) or attached Expansion Panels 1–4 (ESP-1216HL).
+  - **Key Number**: Key number 1–32 (supports Companion variables).
+  - **Press Hold Duration**: Duration to hold the push (default 250ms; minimum 200ms required by panel firmware).
+- **Toggle Mute on Key (Custom IP)**: Target any panel IP address directly on the fly.
+
 ## Feedbacks
 
 - **Connection Status**: Shows if the panel is connected

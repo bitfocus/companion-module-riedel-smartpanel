@@ -438,5 +438,112 @@ export function getActions(instance: RiedelRSP1232HLInstance): CompanionActionDe
 				await instance.flashIdentifyAtIp(ip, count, intervalMs)
 			},
 		},
+
+		// Key Actions (Mute / Rotary Push)
+		toggleKeyMute: {
+			name: 'Toggle Mute on Key',
+			description:
+				'Toggle mute on a key by simulating a rotary encoder push on the connected panel or an expansion panel',
+			options: [
+				{
+					type: 'dropdown',
+					label: 'Panel',
+					id: 'panelId',
+					default: 0,
+					choices: [
+						{ id: 0, label: 'Master Panel (Panel 0)' },
+						{ id: 1, label: 'Expansion Panel 1 (Panel 1)' },
+						{ id: 2, label: 'Expansion Panel 2 (Panel 2)' },
+						{ id: 3, label: 'Expansion Panel 3 (Panel 3)' },
+						{ id: 4, label: 'Expansion Panel 4 (Panel 4)' },
+					],
+				},
+				{
+					type: 'textinput',
+					label: 'Key Number (1 - 32)',
+					id: 'keyNumber',
+					default: '1',
+					useVariables: true,
+				},
+				{
+					type: 'number',
+					label: 'Press Hold Duration (ms)',
+					id: 'durationMs',
+					default: 250,
+					min: 200,
+					max: 2000,
+				},
+			],
+			callback: async (action, context) => {
+				const panelId = Number(action.options.panelId ?? 0)
+				let keyNumber = 1
+				if (action.options.keyNumber !== undefined) {
+					const parsed = await context.parseVariablesInString(String(action.options.keyNumber))
+					keyNumber = parseInt(parsed, 10) || 1
+				}
+				const durationMs = Number(action.options.durationMs ?? 250)
+				await instance.toggleKeyMute(panelId, keyNumber, durationMs)
+			},
+		},
+		toggleKeyMuteAtIp: {
+			name: 'Toggle Mute on Key (Custom IP)',
+			description:
+				'Toggle mute on a key by simulating a rotary encoder push on a panel at a specific IP - supports variables',
+			options: [
+				{
+					type: 'textinput',
+					label: 'Panel IP Address',
+					id: 'ip',
+					default: '',
+					useVariables: true,
+				},
+				{
+					type: 'dropdown',
+					label: 'Panel',
+					id: 'panelId',
+					default: 0,
+					choices: [
+						{ id: 0, label: 'Master Panel (Panel 0)' },
+						{ id: 1, label: 'Expansion Panel 1 (Panel 1)' },
+						{ id: 2, label: 'Expansion Panel 2 (Panel 2)' },
+						{ id: 3, label: 'Expansion Panel 3 (Panel 3)' },
+						{ id: 4, label: 'Expansion Panel 4 (Panel 4)' },
+					],
+				},
+				{
+					type: 'textinput',
+					label: 'Key Number (1 - 32)',
+					id: 'keyNumber',
+					default: '1',
+					useVariables: true,
+				},
+				{
+					type: 'number',
+					label: 'Press Hold Duration (ms)',
+					id: 'durationMs',
+					default: 250,
+					min: 200,
+					max: 2000,
+				},
+			],
+			callback: async (action, context) => {
+				let ip = action.options.ip as string
+				if (typeof ip === 'string') {
+					ip = await context.parseVariablesInString(ip)
+				}
+				if (!ip) {
+					instance.log('warn', 'Toggle Mute on Key (Custom IP): no IP address provided')
+					return
+				}
+				const panelId = Number(action.options.panelId ?? 0)
+				let keyNumber = 1
+				if (action.options.keyNumber !== undefined) {
+					const parsed = await context.parseVariablesInString(String(action.options.keyNumber))
+					keyNumber = parseInt(parsed, 10) || 1
+				}
+				const durationMs = Number(action.options.durationMs ?? 250)
+				await instance.toggleKeyMuteAtIp(ip, panelId, keyNumber, durationMs)
+			},
+		},
 	}
 }

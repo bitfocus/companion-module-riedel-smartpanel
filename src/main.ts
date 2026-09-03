@@ -711,6 +711,75 @@ export class RiedelRSP1232HLInstance extends InstanceBase<DeviceConfig> {
 		})
 	}
 
+	// Key Mute (Rotary Push) Methods via LiveView WebSocket API
+	private async runLiveViewCommand(host: string, run: (socket: WebSocket) => Promise<void>): Promise<void> {
+		if (!host) {
+			this.log('warn', 'LiveView command: no host provided')
+			return
+		}
+		const url = `ws://${host}:${this.config.port}/live-view`
+		const socket = new WebSocket(url)
+		try {
+			await new Promise<void>((resolve, reject) => {
+				const timeout = setTimeout(() => reject(new Error('LiveView connection timeout')), 5000)
+				socket.once('open', () => {
+					clearTimeout(timeout)
+					resolve()
+				})
+				socket.once('error', (error) => {
+					clearTimeout(timeout)
+					reject(error)
+				})
+			})
+			await run(socket)
+			// Wait briefly before closing to ensure the final release message flushes
+			await new Promise((resolve) => setTimeout(resolve, 100))
+		} catch (error) {
+			this.log('error', `LiveView command to ${host} failed: ${error}`)
+		} finally {
+			socket.close()
+		}
+	}
+
+	public async toggleKeyMute(panelId: number, keyNumber: number, durationMs = 250): Promise<void> {
+		const target = this.resolveTarget()
+		if (!target.host) {
+			this.log('warn', 'Toggle Key Mute: no host configured')
+			return
+		}
+		await this.toggleKeyMuteAtIp(target.host, panelId, keyNumber, durationMs)
+	}
+
+	public async toggleKeyMuteAtIp(host: string, panelId: number, keyNumber: number, durationMs = 250): Promise<void> {
+		if (keyNumber < 1) {
+			this.log('warn', `Invalid key number: ${keyNumber}. Must be >= 1`)
+			return
+		}
+		const keyId = keyNumber - 1
+		await this.runLiveViewCommand(host, async (socket) => {
+			const sendMsg = (topic: string, body: Record<string, unknown>) => {
+				socket.send(JSON.stringify({ topic, body }))
+			}
+
+			// Press
+			sendMsg('/LiveView/SimulateButton', {
+				panelId,
+				keyId,
+				buttonState: 'Pressed',
+			})
+
+			// Hold duration (minimum 200ms required by panel firmware)
+			await new Promise((resolve) => setTimeout(resolve, Math.max(durationMs, 200)))
+
+			// Release
+			sendMsg('/LiveView/SimulateButton', {
+				panelId,
+				keyId,
+				buttonState: 'Released',
+			})
+		})
+	}
+
 	// Getter methods for feedbacks
 	public isConnected(): boolean {
 		return this.ws !== null && this.ws.readyState === WebSocket.OPEN
